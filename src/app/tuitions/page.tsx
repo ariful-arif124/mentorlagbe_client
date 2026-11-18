@@ -1,8 +1,9 @@
 
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { getTuitions } from "@/services/tuition-service";
 import {
   Search,
   SlidersHorizontal,
@@ -14,23 +15,65 @@ import {
   BookOpen,
   Users,
   X,
+  RefreshCw,
 } from "lucide-react";
+import type { Tuition } from "@/types/tuition";
 
-import { mockTuitions } from "@/constants/mock-tuitions";
+const API_URL = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+).replace(/\/+$/, "");
 
 export default function TuitionsPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSubject, setSelectedSubject] =
-    useState("All Subjects");
-  const [selectedMode, setSelectedMode] =
-    useState("All Modes");
-  const [selectedLocation, setSelectedLocation] =
-    useState("All Locations");
+  const [tuitions, setTuitions] = useState<Tuition[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [reloadKey, setReloadKey] = useState(0);
 
-  // Only show approved and active tuition posts.
-  // Sort newest first and display a maximum of 6.
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState("All Subjects");
+  const [selectedMode, setSelectedMode] = useState("All Modes");
+  const [selectedLocation, setSelectedLocation] = useState("All Locations");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadTuitions = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const result = await getTuitions();
+
+        if (!result.success || !Array.isArray(result.data)) {
+          throw new Error("Failed to load tuition listings.");
+        }
+
+        if (!cancelled) {
+          setTuitions(result.data);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Something went wrong."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadTuitions();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadKey]);
   const approvedTuitions = useMemo(() => {
-    return [...mockTuitions]
+    return tuitions
       .filter(
         (tuition) =>
           tuition.approvalStatus === "approved" &&
@@ -40,62 +83,72 @@ export default function TuitionsPage() {
         (a, b) =>
           new Date(b.createdAt).getTime() -
           new Date(a.createdAt).getTime()
-      )
-      .slice(0, 6);
-  }, []);
+      );
+  }, [tuitions]);
 
-  // Generate filter options from the tuition data.
-  const subjects = [
-    "All Subjects",
-    ...Array.from(
-      new Set(approvedTuitions.map((item) => item.subject))
-    ),
-  ];
+  const subjects = useMemo(
+    () => [
+      "All Subjects",
+      ...Array.from(
+        new Set(approvedTuitions.map((item) => item.subject))
+      ),
+    ],
+    [approvedTuitions]
+  );
 
-  const locations = [
-    "All Locations",
-    ...Array.from(
-      new Set(approvedTuitions.map((item) => item.location))
-    ),
-  ];
+  const locations = useMemo(
+    () => [
+      "All Locations",
+      ...Array.from(
+        new Set(approvedTuitions.map((item) => item.location))
+      ),
+    ],
+    [approvedTuitions]
+  );
 
-  // Search and filtering logic.
-  const filteredTuitions = approvedTuitions.filter((tuition) => {
-    const search = searchTerm.toLowerCase();
+  const filteredTuitions = useMemo(() => {
+    return approvedTuitions.filter((tuition) => {
+      const search = searchTerm.toLowerCase().trim();
 
-    const matchesSearch = [
-      tuition.title,
-      tuition.subject,
-      tuition.classLevel,
-      tuition.location,
-      tuition.tutorName,
-      tuition.description,
-    ]
-      .join(" ")
-      .toLowerCase()
-      .includes(search);
+      const matchesSearch = [
+        tuition.title,
+        tuition.subject,
+        tuition.classLevel,
+        tuition.location,
+        tuition.tutorName,
+        tuition.description,
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(search);
 
-    const matchesSubject =
-      selectedSubject === "All Subjects" ||
-      tuition.subject === selectedSubject;
+      const matchesSubject =
+        selectedSubject === "All Subjects" ||
+        tuition.subject === selectedSubject;
 
-    const matchesMode =
-      selectedMode === "All Modes" ||
-      tuition.mode === selectedMode;
+      const matchesMode =
+        selectedMode === "All Modes" ||
+        tuition.mode === selectedMode;
 
-    const matchesLocation =
-      selectedLocation === "All Locations" ||
-      tuition.location === selectedLocation;
+      const matchesLocation =
+        selectedLocation === "All Locations" ||
+        tuition.location === selectedLocation;
 
-    return (
-      matchesSearch &&
-      matchesSubject &&
-      matchesMode &&
-      matchesLocation
-    );
-  });
+      return (
+        matchesSearch &&
+        matchesSubject &&
+        matchesMode &&
+        matchesLocation
+      );
+    });
+  }, [
+    approvedTuitions,
+    searchTerm,
+    selectedSubject,
+    selectedMode,
+    selectedLocation,
+  ]);
 
-  // Reset all filters.
   const resetFilters = () => {
     setSearchTerm("");
     setSelectedSubject("All Subjects");
@@ -109,13 +162,18 @@ export default function TuitionsPage() {
     selectedMode !== "All Modes" ||
     selectedLocation !== "All Locations";
 
+  const getInitials = (name: string) =>
+    (name || "Tutor")
+      .split(" ")
+      .map((word) => word[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase();
+
   return (
     <main className="min-h-screen bg-[#FBF8F3] pb-20">
-
-      {/* Page Header */}
       <section className="border-b border-[#E5E1D8] bg-white">
         <div className="site-container py-16 text-center">
-
           <span className="section-eyebrow">
             EXPLORE LEARNING OPPORTUNITIES
           </span>
@@ -146,17 +204,16 @@ export default function TuitionsPage() {
               Multiple Subjects
             </span>
           </div>
-
         </div>
       </section>
 
-      {/* Search and Filters */}
       <section className="site-container -mt-1 pt-10">
-
         <div className="rounded-2xl border border-[#E5E1D8] bg-white p-5 shadow-sm">
-
           <div className="mb-5 flex items-center gap-2">
-            <SlidersHorizontal size={19} className="text-[#0F5132]" />
+            <SlidersHorizontal
+              size={19}
+              className="text-[#0F5132]"
+            />
 
             <h2 className="font-semibold text-[#14201B]">
               Find Your Tuition
@@ -164,8 +221,6 @@ export default function TuitionsPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-
-            {/* Search */}
             <div className="relative">
               <label className="mb-2 block text-sm font-medium text-[#5B6B64]">
                 Search
@@ -185,7 +240,6 @@ export default function TuitionsPage() {
               />
             </div>
 
-            {/* Subject Filter */}
             <div>
               <label className="mb-2 block text-sm font-medium text-[#5B6B64]">
                 Select Subject
@@ -204,7 +258,6 @@ export default function TuitionsPage() {
               </select>
             </div>
 
-            {/* Mode Filter */}
             <div>
               <label className="mb-2 block text-sm font-medium text-[#5B6B64]">
                 Learning Mode
@@ -221,7 +274,6 @@ export default function TuitionsPage() {
               </select>
             </div>
 
-            {/* Location Filter */}
             <div>
               <label className="mb-2 block text-sm font-medium text-[#5B6B64]">
                 Location
@@ -239,7 +291,6 @@ export default function TuitionsPage() {
                 ))}
               </select>
             </div>
-
           </div>
 
           {hasActiveFilters && (
@@ -253,15 +304,11 @@ export default function TuitionsPage() {
               </button>
             </div>
           )}
-
         </div>
       </section>
 
-      {/* Tuition Listings */}
       <section className="site-container pt-12">
-
         <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
-
           <div>
             <span className="section-eyebrow">
               AVAILABLE OPPORTUNITIES
@@ -277,24 +324,54 @@ export default function TuitionsPage() {
           </div>
 
           <div className="rounded-full bg-[#EAF1EC] px-4 py-2 text-sm font-semibold text-[#0F5132]">
-            {filteredTuitions.length} Opportunities Found
+            {loading
+              ? "Loading..."
+              : `${filteredTuitions.length} Opportunities Found`}
           </div>
-
         </div>
 
-        {/* Tuition Cards */}
-        {filteredTuitions.length > 0 ? (
-
+        {loading ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div
+                key={index}
+                className="overflow-hidden rounded-2xl border border-[#E5E1D8] bg-white"
+              >
+                <div className="h-48 animate-pulse bg-[#E5EAE5]" />
+                <div className="space-y-4 p-5">
+                  <div className="h-6 w-3/4 animate-pulse rounded bg-[#E5EAE5]" />
+                  <div className="h-4 w-1/2 animate-pulse rounded bg-[#E5EAE5]" />
+                  <div className="h-16 animate-pulse rounded-xl bg-[#E5EAE5]" />
+                  <div className="h-11 animate-pulse rounded-xl bg-[#E5EAE5]" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          <div className="rounded-2xl border border-red-200 bg-white px-6 py-16 text-center">
+            <h3 className="text-xl font-bold text-[#14201B]">
+              Unable to Load Tuitions
+            </h3>
 
+            <p className="mt-3 text-sm text-red-600">
+              {error}
+            </p>
+
+            <button
+              onClick={() => setReloadKey((key) => key + 1)}
+              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#0F5132] px-6 py-3 font-semibold text-white transition hover:bg-[#0B3F27]"
+            >
+              <RefreshCw size={16} />
+              Try Again
+            </button>
+          </div>
+        ) : filteredTuitions.length > 0 ? (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             {filteredTuitions.map((tuition) => (
-
               <article
                 key={tuition._id}
                 className="group overflow-hidden rounded-2xl border border-[#E5E1D8] bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg"
               >
-
-                {/* Card Banner */}
                 <div
                   className="relative flex h-48 items-end bg-cover bg-center p-5"
                   style={{
@@ -303,34 +380,26 @@ export default function TuitionsPage() {
                       : "linear-gradient(135deg, #0F5132, #789B72)",
                   }}
                 >
-
                   <span className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#0F5132] shadow-sm">
-
                     {tuition.mode === "Online" ? (
                       <Monitor size={14} />
                     ) : (
                       <MapPin size={14} />
                     )}
-
                     {tuition.mode}
-
                   </span>
 
                   <span className="rounded-full bg-white px-4 py-1.5 text-xs font-bold text-[#0F5132]">
                     {tuition.subject}
                   </span>
-
                 </div>
 
-                {/* Card Content */}
-                <div className="p-5">
-
+                <div className="flex h-full flex-col p-5">
                   <h3 className="min-h-14 text-xl font-bold leading-7 text-[#14201B] transition group-hover:text-[#0F5132]">
                     {tuition.title}
                   </h3>
 
                   <div className="mt-4 space-y-3 text-sm text-[#5B6B64]">
-
                     <div className="flex items-center gap-2">
                       <GraduationCap size={18} className="shrink-0" />
                       <span>{tuition.classLevel}</span>
@@ -345,37 +414,25 @@ export default function TuitionsPage() {
                       <MapPin size={17} className="shrink-0" />
                       <span>{tuition.location}</span>
                     </div>
-
                   </div>
 
-                  {/* Monthly Fee */}
                   <div className="mt-5 rounded-xl bg-[#EAF1EC] p-4">
-
                     <p className="text-xs font-medium text-[#5B6B64]">
                       Monthly Tuition Fee
                     </p>
 
                     <p className="mt-1 text-2xl font-bold text-[#0F5132]">
-                      ৳{tuition.monthlyFee.toLocaleString("en-BD")}
-
+                      ৳{Number(tuition.monthlyFee).toLocaleString("en-BD")}
                       <span className="ml-1 text-sm font-normal text-[#5B6B64]">
                         / month
                       </span>
                     </p>
-
                   </div>
 
-                  {/* Tutor Information */}
                   <div className="mt-5 flex items-center justify-between border-t border-[#E5E1D8] pt-4">
-
                     <div className="flex min-w-0 items-center gap-3">
-
                       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#EAF1EC] text-sm font-bold text-[#0F5132]">
-                        {tuition.tutorName
-                          .split(" ")
-                          .map((word) => word[0])
-                          .slice(0, 2)
-                          .join("")}
+                        {getInitials(tuition.tutorName)}
                       </div>
 
                       <div className="min-w-0">
@@ -387,17 +444,14 @@ export default function TuitionsPage() {
                           {tuition.tutorName}
                         </p>
                       </div>
-
                     </div>
 
                     <Users
                       size={20}
                       className="shrink-0 text-[#5B6B64]"
                     />
-
                   </div>
 
-                  {/* Details Button */}
                   <Link
                     href={`/tuitions/${tuition._id}`}
                     className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#C9D9CF] bg-[#F1F6F2] font-semibold text-[#0F5132] transition hover:bg-[#0F5132] hover:text-white"
@@ -405,20 +459,12 @@ export default function TuitionsPage() {
                     View Details
                     <ArrowRight size={18} />
                   </Link>
-
                 </div>
-
               </article>
-
             ))}
-
           </div>
-
         ) : (
-
-          /* Empty State */
           <div className="rounded-2xl border border-dashed border-[#C9D9CF] bg-white px-6 py-20 text-center">
-
             <Search
               size={42}
               className="mx-auto text-[#789087]"
@@ -439,13 +485,9 @@ export default function TuitionsPage() {
             >
               Reset Filters
             </button>
-
           </div>
-
         )}
-
       </section>
-
     </main>
   );
 }

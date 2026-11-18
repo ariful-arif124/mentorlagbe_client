@@ -1,6 +1,6 @@
-
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -13,23 +13,27 @@ import {
   BookOpen,
 } from "lucide-react";
 
-import { mockTuitions } from "@/constants/mock-tuitions";
+import { getFeaturedTuitions } from "@/services/tuition-service";
+import type { Tuition } from "@/types/tuition";
 
 export function FeaturedTuitions() {
-  // Only approved and active tuition listings
-  // Sort newest first and display the latest six
-  const featuredTuitions = [...mockTuitions]
-    .filter(
-      (tuition) =>
-        tuition.approvalStatus === "approved" &&
-        tuition.isActive === true
-    )
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() -
-        new Date(a.createdAt).getTime()
-    )
-    .slice(0, 6);
+  const [featuredTuitions, setFeaturedTuitions] = useState<Tuition[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadTuitions = async () => {
+      try {
+        const result = await getFeaturedTuitions();
+        setFeaturedTuitions(result.data || []);
+      } catch (error) {
+        console.error("Failed to load featured tuitions:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTuitions();
+  }, []);
 
   const getInitials = (name: string) =>
     name
@@ -42,8 +46,6 @@ export function FeaturedTuitions() {
   return (
     <section className="bg-background py-20 md:py-24">
       <div className="site-container space-y-12">
-
-        {/* Section Heading */}
         <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl space-y-3">
             <p className="section-eyebrow">
@@ -70,10 +72,18 @@ export function FeaturedTuitions() {
           </Link>
         </div>
 
-        {/* Tuition Cards */}
-        {featuredTuitions.length > 0 ? (
+        {loading ? (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {featuredTuitions.map((tuition, index) => {
+            {[1, 2, 3].map((item) => (
+              <div
+                key={item}
+                className="h-[560px] animate-pulse rounded-2xl border border-border bg-card"
+              />
+            ))}
+          </div>
+        ) : featuredTuitions.length > 0 ? (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {featuredTuitions.slice(0, 6).map((tuition, index) => {
               const ModeIcon =
                 tuition.mode === "Online" ? Monitor : MapPin;
 
@@ -89,7 +99,6 @@ export function FeaturedTuitions() {
                   }}
                   className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5"
                 >
-                  {/* Banner Image */}
                   <div
                     role="img"
                     aria-label={tuition.title}
@@ -100,12 +109,10 @@ export function FeaturedTuitions() {
                   >
                     <div className="absolute inset-0 bg-gradient-to-t from-black/45 to-transparent" />
 
-                    {/* Subject Badge */}
                     <span className="absolute bottom-4 left-4 rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold text-primary shadow-sm">
                       {tuition.subject}
                     </span>
 
-                    {/* Mode Badge */}
                     <span
                       className={`absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm ${
                         tuition.mode === "Online"
@@ -118,16 +125,12 @@ export function FeaturedTuitions() {
                     </span>
                   </div>
 
-                  {/* Card Content */}
                   <div className="flex flex-1 flex-col p-5">
-
-                    {/* Title */}
                     <div className="space-y-3">
                       <h3 className="line-clamp-2 min-h-[3.5rem] text-lg font-bold leading-7 text-foreground transition-colors group-hover:text-primary">
                         {tuition.title}
                       </h3>
 
-                      {/* Class and Schedule */}
                       <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                         <span className="inline-flex items-center gap-1.5">
                           <GraduationCap size={15} />
@@ -140,7 +143,6 @@ export function FeaturedTuitions() {
                         </span>
                       </div>
 
-                      {/* Location */}
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <MapPin size={15} className="shrink-0" />
                         <span className="truncate">
@@ -149,7 +151,6 @@ export function FeaturedTuitions() {
                       </div>
                     </div>
 
-                    {/* Monthly Fee */}
                     <div className="mt-5 rounded-xl bg-secondary/70 p-3">
                       <p className="text-xs font-medium text-muted-foreground">
                         Monthly Tuition Fee
@@ -163,7 +164,6 @@ export function FeaturedTuitions() {
                       </p>
                     </div>
 
-                    {/* Tutor Information */}
                     <div className="mt-5 flex items-center gap-3 border-t border-border pt-4">
                       <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
                         {getInitials(tuition.tutorName)}
@@ -185,7 +185,6 @@ export function FeaturedTuitions() {
                       />
                     </div>
 
-                    {/* View Details Button */}
                     <Link
                       href={`/tuitions/${tuition._id}`}
                       className="mt-auto flex h-11 items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 text-sm font-semibold text-primary transition-all hover:bg-primary hover:text-primary-foreground"

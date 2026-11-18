@@ -2,21 +2,23 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { Suspense } from "react";
+import Navbar from "@/components/layout/navbar";
 
 const inter = Inter({
-  variable: "--font-inter",
   subsets: ["latin"],
+  variable: "--font-inter",
 });
 
 const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-jakarta",
   subsets: ["latin"],
+  variable: "--font-plus-jakarta-sans",
 });
 
 export const metadata: Metadata = {
   title: "MentorLagbe | Find Your Ideal Tutor",
   description:
-    "Find verified tutors, tuition batches, and personalized mentorship with MentorLagbe.",
+    "Connect with qualified tutors and discover personalized learning opportunities with MentorLagbe.",
 };
 
 export default function RootLayout({
@@ -29,7 +31,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${plusJakartaSans.variable} antialiased`}
       >
-        {children}
+        <Suspense fallback={<div className="h-20" />}>
+          <Navbar />
+        </Suspense>        {children}
       </body>
     </html>
   );

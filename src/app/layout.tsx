@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
-import Navbar from "@/components/layout/navbar";
+
+import ConditionalNavbar from "@/components/layout/conditional-navbar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,9 +32,11 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${plusJakartaSans.variable} antialiased`}
       >
-        <Suspense fallback={<div className="h-20" />}>
-          <Navbar />
-        </Suspense>        {children}
+        <Suspense fallback={null}>
+          <ConditionalNavbar />
+        </Suspense>
+
+        {children}
       </body>
     </html>
   );

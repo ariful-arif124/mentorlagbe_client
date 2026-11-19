@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Suspense } from "react";
+import { Toaster } from "sonner";
 
 import ConditionalNavbar from "@/components/layout/conditional-navbar";
 
@@ -37,6 +38,14 @@ export default function RootLayout({
         </Suspense>
 
         {children}
+
+        {/* Global Toast Notifications */}
+        <Toaster
+          position="top-right"
+          richColors
+          closeButton
+          duration={4000}
+        />
       </body>
     </html>
   );

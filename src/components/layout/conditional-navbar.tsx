@@ -2,24 +2,19 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import Navbar from "./navbar";
 
-import Navbar from "@/components/layout/navbar";
-
-export default function ConditionalNavbar({
-  children,
-}: {
-  children?: ReactNode;
-}) {
+export default function ConditionalNavbar() {
   const pathname = usePathname();
 
-  const isAdminRoute =
-    pathname === "/dashboard/admin" ||
-    pathname.startsWith("/dashboard/admin/");
+  const isDashboardRoute =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/student/dashboard") ||
+    pathname.startsWith("/tutor/dashboard");
 
-  if (isAdminRoute) {
+  if (isDashboardRoute) {
     return null;
   }
 
-  return children ?? <Navbar />;
+  return <Navbar />;
 }

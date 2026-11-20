@@ -124,11 +124,10 @@ export function PricingSection() {
 
             <button
               onClick={() => setActiveRole("student")}
-              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all ${
-                activeRole === "student"
-                  ? "bg-primary text-primary-foreground shadow-md"
-                  : "text-muted-foreground hover:bg-secondary"
-              }`}
+              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all ${activeRole === "student"
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "text-muted-foreground hover:bg-secondary"
+                }`}
             >
               <GraduationCap size={18} />
               Student
@@ -136,11 +135,10 @@ export function PricingSection() {
 
             <button
               onClick={() => setActiveRole("tutor")}
-              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all ${
-                activeRole === "tutor"
-                  ? "bg-primary text-primary-foreground shadow-md"
-                  : "text-muted-foreground hover:bg-secondary"
-              }`}
+              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all ${activeRole === "tutor"
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "text-muted-foreground hover:bg-secondary"
+                }`}
             >
               <Users size={18} />
               Tutor
@@ -172,11 +170,10 @@ export function PricingSection() {
           {currentData.plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative flex h-full flex-col rounded-3xl border p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
-                plan.popular
-                  ? "border-primary bg-card ring-1 ring-primary/20"
-                  : "border-border bg-card"
-              }`}
+              className={`relative flex h-full flex-col rounded-3xl border p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${plan.popular
+                ? "border-primary bg-card ring-1 ring-primary/20"
+                : "border-border bg-card"
+                }`}
             >
 
               {/* Most Popular Ribbon */}
@@ -191,11 +188,10 @@ export function PricingSection() {
               <div className="flex items-center gap-3">
 
                 <div
-                  className={`flex size-12 items-center justify-center rounded-xl ${
-                    plan.popular
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-primary"
-                  }`}
+                  className={`flex size-12 items-center justify-center rounded-xl ${plan.popular
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-primary"
+                    }`}
                 >
                   {plan.popular ? (
                     <Crown size={23} />
@@ -238,7 +234,7 @@ export function PricingSection() {
               <div className="mt-7 flex-1">
 
                 <p className="mb-5 text-sm font-bold text-foreground">
-                  What's included:
+                  What&apos;s included:
                 </p>
 
                 <ul className="space-y-4">
@@ -262,11 +258,10 @@ export function PricingSection() {
               {/* CTA */}
               <Link
                 href={plan.href}
-                className={`mt-9 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-4 text-sm font-bold transition-all ${
-                  plan.popular
-                    ? "bg-primary text-primary-foreground hover:opacity-90"
-                    : "border border-border bg-secondary text-foreground hover:border-primary hover:text-primary"
-                }`}
+                className={`mt-9 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-4 text-sm font-bold transition-all ${plan.popular
+                  ? "bg-primary text-primary-foreground hover:opacity-90"
+                  : "border border-border bg-secondary text-foreground hover:border-primary hover:text-primary"
+                  }`}
               >
                 {plan.button}
                 <ArrowRight size={17} />

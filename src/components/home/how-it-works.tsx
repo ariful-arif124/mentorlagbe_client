@@ -114,26 +114,24 @@ export function HowItWorks() {
               type="button"
               onClick={() => setActiveRole("student")}
               aria-pressed={activeRole === "student"}
-              className={`rounded-lg px-5 py-3 text-sm font-semibold transition-all ${
-                activeRole === "student"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`rounded-lg px-5 py-3 text-sm font-semibold transition-all ${activeRole === "student"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
             >
-              I'm a Student
+              I&apos;m a Student
             </button>
 
             <button
               type="button"
               onClick={() => setActiveRole("tutor")}
               aria-pressed={activeRole === "tutor"}
-              className={`rounded-lg px-5 py-3 text-sm font-semibold transition-all ${
-                activeRole === "tutor"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`rounded-lg px-5 py-3 text-sm font-semibold transition-all ${activeRole === "tutor"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
             >
-              I'm a Tutor
+              I&apos;m a Tutor
             </button>
           </div>
         </div>

@@ -1,7 +1,6 @@
 
 import Link from "next/link";
-import { CurrentYear } from "@/components/shared/current-year";
-
+import CurrentYear from "@/components/shared/current-year";
 import {
     GraduationCap,
     Mail,

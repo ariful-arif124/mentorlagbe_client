@@ -233,7 +233,7 @@ export function StatsTestimonials() {
 
                 {/* Testimonial Message */}
                 <p className="mt-6 flex-1 text-sm leading-7 text-muted-foreground">
-                  "{testimonial.message}"
+                  &ldquo;{testimonial.message}&rdquo;
                 </p>
 
                 {/* User Information */}

@@ -475,10 +475,62 @@ export default function AdminUsersPage() {
             User Management
           </button>
 
+          {/* Tutors */}
+          <button
+            type="button"
+            onClick={() => {
+              setMobileOpen(false);
+              router.push("/dashboard/admin/tutors");
+            }}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-gray-500 transition hover:bg-[#f5f7f5] hover:text-[#075c3d]"
+          >
+            <GraduationCap size={19} />
+            Tutors
+          </button>
+
+          {/* Coming Soon Sections */}
+
+          {/* Tutors */}
+          <button
+            type="button"
+            onClick={() => {
+              setMobileOpen(false);
+              router.push("/dashboard/admin/tutors");
+            }}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-gray-500 transition hover:bg-[#f5f7f5] hover:text-[#075c3d]"
+          >
+            <GraduationCap size={19} />
+            Tutors
+          </button>
+
+          {/* Students */}
+          <button
+            type="button"
+            onClick={() => {
+              setMobileOpen(false);
+              router.push("/dashboard/admin/students");
+            }}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-gray-500 transition hover:bg-[#f5f7f5] hover:text-[#075c3d]"
+          >
+            <UserRound size={19} />
+            Students
+          </button>
+
+          {/* Tuition Management */}
+          <button
+            type="button"
+            onClick={() => {
+              setMobileOpen(false);
+              router.push("/dashboard/admin/tuitions");
+            }}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-gray-500 transition hover:bg-[#f5f7f5] hover:text-[#075c3d]"
+          >
+            <BookOpen size={19} />
+            Tuition Management
+          </button>
+
+          {/* Coming Soon */}
           {[
-            { label: "Tutors", icon: GraduationCap },
-            { label: "Students", icon: UserRound },
-            { label: "Tuition Management", icon: BookOpen },
             { label: "Applications", icon: ClipboardList },
             { label: "Payments", icon: CreditCard },
           ].map((item) => {
@@ -487,7 +539,7 @@ export default function AdminUsersPage() {
             return (
               <div
                 key={item.label}
-                className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-gray-500"
+                className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-gray-400"
               >
                 <Icon size={19} />
                 <span>{item.label}</span>
@@ -840,10 +892,9 @@ export default function AdminUsersPage() {
                           {/* ROLE */}
                           <td className="px-6 py-5">
                             <span
-                              className={`rounded-full px-3 py-1.5 text-[11px] font-bold capitalize ${
-                                roleStyle[user.role] ||
+                              className={`rounded-full px-3 py-1.5 text-[11px] font-bold capitalize ${roleStyle[user.role] ||
                                 "bg-gray-100 text-gray-600"
-                              }`}
+                                }`}
                             >
                               {user.role}
                             </span>
@@ -859,11 +910,10 @@ export default function AdminUsersPage() {
                           {/* STATUS */}
                           <td className="px-6 py-5">
                             <span
-                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold ${
-                                user.isActive
-                                  ? "bg-emerald-50 text-emerald-700"
-                                  : "bg-red-50 text-red-600"
-                              }`}
+                              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold ${user.isActive
+                                ? "bg-emerald-50 text-emerald-700"
+                                : "bg-red-50 text-red-600"
+                                }`}
                             >
                               {user.isActive ? (
                                 <CheckCircle2 size={13} />
@@ -902,11 +952,10 @@ export default function AdminUsersPage() {
                                       ? "Deactivate account"
                                       : "Activate account"
                                 }
-                                className={`rounded-lg px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${
-                                  user.isActive
-                                    ? "bg-red-50 text-red-600 hover:bg-red-100"
-                                    : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                                }`}
+                                className={`rounded-lg px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${user.isActive
+                                  ? "bg-red-50 text-red-600 hover:bg-red-100"
+                                  : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                  }`}
                               >
                                 {updatingId === user.userId ? (
                                   <Loader2
@@ -1117,11 +1166,10 @@ export default function AdminUsersPage() {
                         setSelectedUser(null);
                         toggleUserStatus(user);
                       }}
-                      className={`rounded-xl px-5 py-2.5 text-sm font-semibold ${
-                        selectedUser.isActive
-                          ? "bg-red-50 text-red-600 hover:bg-red-100"
-                          : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                      }`}
+                      className={`rounded-xl px-5 py-2.5 text-sm font-semibold ${selectedUser.isActive
+                        ? "bg-red-50 text-red-600 hover:bg-red-100"
+                        : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                        }`}
                     >
                       {selectedUser.isActive
                         ? "Deactivate"

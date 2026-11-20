@@ -286,7 +286,10 @@ export default function AdminDashboard() {
 
                         const isImplemented =
                             item.label === "Overview" ||
-                            item.label === "User Management";
+                            item.label === "User Management" ||
+                            item.label === "Tutors" ||
+                            item.label === "Students" ||
+                            item.label === "Tuition Management";
 
                         return (
                             <button
@@ -299,6 +302,12 @@ export default function AdminDashboard() {
                                         router.push("/dashboard/admin");
                                     } else if (item.label === "User Management") {
                                         router.push("/dashboard/admin/users");
+                                    } else if (item.label === "Tutors") {
+                                        router.push("/dashboard/admin/tutors");
+                                    } else if (item.label === "Students") {
+                                        router.push("/dashboard/admin/students");
+                                    } else if (item.label === "Tuition Management") {
+                                        router.push("/dashboard/admin/tuitions");
                                     }
                                 }}
                                 className={`
@@ -452,8 +461,7 @@ export default function AdminDashboard() {
                             </h2>
 
                             <p className="mt-3 text-sm text-gray-500 md:text-base">
-                                Here's what's happening across your MentorLagbe platform.
-                            </p>
+                                Here&apos;s what&apos;s happening across your MentorLagbe platform.                            </p>
                         </div>
 
                         <button

@@ -626,6 +626,7 @@ export default function AdminTuitionManagement() {
             const implemented =
               item.label === "Overview" ||
               item.label === "User Management" ||
+              item.label === "Tutors" ||
               item.label === "Tuition Management";
 
             const active = item.label === "Tuition Management";
@@ -641,6 +642,8 @@ export default function AdminTuitionManagement() {
                     router.push("/dashboard/admin");
                   } else if (item.label === "User Management") {
                     router.push("/dashboard/admin/users");
+                  } else if (item.label === "Tutors") {
+                    router.push("/dashboard/admin/tutors");
                   } else if (item.label === "Tuition Management") {
                     router.push("/dashboard/admin/tuitions");
                   }
@@ -650,15 +653,13 @@ export default function AdminTuitionManagement() {
                 className={`
                   flex w-full items-center gap-3 rounded-xl px-3 py-3
                   text-left text-sm font-medium transition
-                  ${
-                    active
-                      ? "bg-[#eaf4ed] text-[#075c3d]"
-                      : "text-gray-500 hover:bg-[#f5f7f5] hover:text-[#075c3d]"
+                  ${active
+                    ? "bg-[#eaf4ed] text-[#075c3d]"
+                    : "text-gray-500 hover:bg-[#f5f7f5] hover:text-[#075c3d]"
                   }
-                  ${
-                    implemented
-                      ? "cursor-pointer"
-                      : "cursor-not-allowed opacity-60"
+                  ${implemented
+                    ? "cursor-pointer"
+                    : "cursor-not-allowed opacity-60"
                   }
                 `}
               >
@@ -1417,9 +1418,8 @@ function ApprovalBadge({ status }: { status: string }) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold capitalize ${
-        styles[status] || styles.pending
-      }`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold capitalize ${styles[status] || styles.pending
+        }`}
     >
       {icons[status] || icons.pending}
       {status}
@@ -1431,16 +1431,14 @@ function ApprovalBadge({ status }: { status: string }) {
 function StatusBadge({ active }: { active: boolean }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold ${
-        active
-          ? "bg-emerald-50 text-emerald-700"
-          : "bg-gray-100 text-gray-500"
-      }`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold ${active
+        ? "bg-emerald-50 text-emerald-700"
+        : "bg-gray-100 text-gray-500"
+        }`}
     >
       <span
-        className={`h-1.5 w-1.5 rounded-full ${
-          active ? "bg-emerald-500" : "bg-gray-400"
-        }`}
+        className={`h-1.5 w-1.5 rounded-full ${active ? "bg-emerald-500" : "bg-gray-400"
+          }`}
       />
       {active ? "Active" : "Inactive"}
     </span>

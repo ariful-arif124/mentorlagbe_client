@@ -173,12 +173,16 @@ export default function GoogleAuthButton({
 
                         // Redirect according to account role.
 
+
                         const destination =
-                            user.role === "student"
-                                ? "/student/dashboard"
-                                : user.role === "tutor"
-                                    ? "/tutor/dashboard"
-                                    : "/";
+                            user.role === "admin"
+                                ? "/dashboard/admin"
+                                : user.role === "student"
+                                    ? "/student/dashboard"
+                                    : user.role === "tutor"
+                                        ? "/tutor/dashboard"
+                                        : "/";
+
 
                         router.replace(destination);
                         router.refresh();

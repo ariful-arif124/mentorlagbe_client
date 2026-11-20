@@ -2,25 +2,14 @@
 "use client";
 
 import {
-  useEffect,
-  useRef,
   useState,
+  useSyncExternalStore,
   type FormEvent,
 } from "react";
 
-import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 
-import {
-  ArrowRight,
-  BookOpen,
-  CalendarDays,
-  CheckCircle2,
-  Loader2,
-  Phone,
-  ShieldCheck,
-  X,
-} from "lucide-react";
+import { ArrowRight, Loader2, X } from "lucide-react";
 
 import { toast } from "sonner";
 
@@ -35,21 +24,24 @@ interface StoredUser {
   role: string;
 }
 
-interface ApplicationResponse {
-  success?: boolean;
-  message?: string;
-}
-
-const API_BASE_URL = (
+const API_URL = (
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
 )
   .trim()
   .replace(/\/+$/, "")
   .replace(/\/api$/i, "");
 
-const APPLICATIONS_URL = `${API_BASE_URL}/api/applications`;
+const AUTH_LOADING = "__auth_loading__";
+const AUTH_SIGNED_OUT = "__auth_signed_out__";
 
-function getStoredAuth() {
+// ==========================================
+// GET AUTHENTICATION FROM LOCAL STORAGE
+// ==========================================
+
+function getStoredAuth(): {
+  token: string;
+  user: StoredUser;
+} | null {
   try {
     const token =
       localStorage.getItem("token") ||
@@ -65,89 +57,109 @@ function getStoredAuth() {
 
     if (!user.role) return null;
 
-    return {
-      token,
-      user,
-    };
+    return { token, user };
   } catch {
     return null;
   }
 }
 
+// ==========================================
+// AUTHENTICATION STORE SUBSCRIPTION
+// ==========================================
+
+function subscribeToAuth(onStoreChange: () => void) {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  window.addEventListener("storage", onStoreChange);
+
+  window.addEventListener(
+    "mentorlagbe-auth-change",
+    onStoreChange
+  );
+
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+
+    window.removeEventListener(
+      "mentorlagbe-auth-change",
+      onStoreChange
+    );
+  };
+}
+
+function getAuthSnapshot() {
+  if (typeof window === "undefined") {
+    return AUTH_LOADING;
+  }
+
+  const auth = getStoredAuth();
+
+  if (!auth) return AUTH_SIGNED_OUT;
+
+  return JSON.stringify({
+    token: auth.token,
+    role: auth.user.role.toLowerCase(),
+  });
+}
+
+function getServerAuthSnapshot() {
+  return AUTH_LOADING;
+}
+
+// ==========================================
+// MAIN COMPONENT
+// ==========================================
+
 export default function ApplyTuitionButton({ tuitionId }: Props) {
   const router = useRouter();
 
-  const phoneInputRef = useRef<HTMLInputElement>(null);
-  const isSubmittingRef = useRef(false);
+  // ==========================================
+  // AUTHENTICATION STATE
+  // ==========================================
 
-  const [authChecked, setAuthChecked] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
-  const [role, setRole] = useState<string | null>(null);
+  const authSnapshot = useSyncExternalStore(
+    subscribeToAuth,
+    getAuthSnapshot,
+    getServerAuthSnapshot
+  );
+
+  const auth =
+    authSnapshot.startsWith("{")
+      ? (JSON.parse(authSnapshot) as {
+          token: string;
+          role: string;
+        })
+      : null;
+
+  const token = auth?.token ?? null;
+  const role = auth?.role ?? null;
+
+  const authChecked = authSnapshot !== AUTH_LOADING;
+
+  // ==========================================
+  // APPLICATION STATE
+  // ==========================================
 
   const [isOpen, setIsOpen] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [isApplied, setIsApplied] = useState(false);
 
+  // ==========================================
+  // FORM STATE
+  // ==========================================
+
   const [phone, setPhone] = useState("");
+
   const [preferredSchedule, setPreferredSchedule] = useState("");
+
   const [studentNote, setStudentNote] = useState("");
 
   // ==========================================
-  // AUTHENTICATION
-  // ==========================================
-
-  useEffect(() => {
-    const auth = getStoredAuth();
-
-    if (auth) {
-      setToken(auth.token);
-      setRole(auth.user.role.toLowerCase());
-    }
-
-    setAuthChecked(true);
-  }, []);
-
-  // ==========================================
-  // KEEP SUBMISSION STATE UPDATED
-  // ==========================================
-
-  useEffect(() => {
-    isSubmittingRef.current = isSubmitting;
-  }, [isSubmitting]);
-
-  // ==========================================
-  // MODAL CONTROLS
-  // ==========================================
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const previousOverflow = document.body.style.overflow;
-
-    document.body.style.overflow = "hidden";
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.key === "Escape" &&
-        !isSubmittingRef.current
-      ) {
-        setIsOpen(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    phoneInputRef.current?.focus();
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isOpen]);
-
-  // ==========================================
-  // APPLY BUTTON
+  // HANDLE APPLY BUTTON
   // ==========================================
 
   const handleApply = () => {
@@ -162,10 +174,7 @@ export default function ApplyTuitionButton({ tuitionId }: Props) {
     }
 
     if (role !== "student") {
-      toast.error(
-        "Only student accounts can apply for tuition."
-      );
-
+      toast.error("Only student accounts can apply for tuition.");
       return;
     }
 
@@ -173,7 +182,7 @@ export default function ApplyTuitionButton({ tuitionId }: Props) {
   };
 
   // ==========================================
-  // SUBMIT APPLICATION
+  // HANDLE APPLICATION SUBMISSION
   // ==========================================
 
   const handleSubmit = async (
@@ -187,14 +196,15 @@ export default function ApplyTuitionButton({ tuitionId }: Props) {
     }
 
     const normalizedPhone = phone.trim();
+
     const normalizedSchedule = preferredSchedule.trim();
+
     const normalizedNote = studentNote.trim();
 
     if (!normalizedPhone || !normalizedSchedule) {
       toast.error(
-        "Phone number and preferred schedule are required."
+        "Phone and preferred schedule are required."
       );
-
       return;
     }
 
@@ -208,27 +218,30 @@ export default function ApplyTuitionButton({ tuitionId }: Props) {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(APPLICATIONS_URL, {
-        method: "POST",
+      const response = await fetch(
+        `${API_URL}/api/applications`,
+        {
+          method: "POST",
 
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
 
-        body: JSON.stringify({
-          tuitionId,
-          studentPhone: normalizedPhone,
-          preferredSchedule: normalizedSchedule,
-          studentNote: normalizedNote,
-        }),
-      });
+          body: JSON.stringify({
+            tuitionId,
+            studentPhone: normalizedPhone,
+            preferredSchedule: normalizedSchedule,
+            studentNote: normalizedNote,
+          }),
+        }
+      );
 
-      const result: ApplicationResponse = await response
-        .json()
-        .catch(() => ({}));
+      const result = await response.json();
 
-      // EXPIRED SESSION
+      // ==========================================
+      // SESSION EXPIRED
+      // ==========================================
 
       if (response.status === 401) {
         toast.error(
@@ -246,7 +259,9 @@ export default function ApplyTuitionButton({ tuitionId }: Props) {
         return;
       }
 
+      // ==========================================
       // DUPLICATE APPLICATION
+      // ==========================================
 
       if (response.status === 409) {
         toast.error(
@@ -255,12 +270,15 @@ export default function ApplyTuitionButton({ tuitionId }: Props) {
         );
 
         setIsApplied(true);
+
         setIsOpen(false);
 
         return;
       }
 
-      // OTHER ERRORS
+      // ==========================================
+      // HANDLE OTHER ERRORS
+      // ==========================================
 
       if (!response.ok || !result.success) {
         throw new Error(
@@ -269,17 +287,22 @@ export default function ApplyTuitionButton({ tuitionId }: Props) {
         );
       }
 
-      // SUCCESS
+      // ==========================================
+      // APPLICATION SUCCESS
+      // ==========================================
 
       toast.success(
         "Your tuition application was submitted successfully!"
       );
 
       setIsApplied(true);
+
       setIsOpen(false);
 
       setPhone("");
+
       setPreferredSchedule("");
+
       setStudentNote("");
 
     } catch (error) {
@@ -295,485 +318,13 @@ export default function ApplyTuitionButton({ tuitionId }: Props) {
   };
 
   // ==========================================
-  // APPLICATION MODAL
-  // ==========================================
-
-  const applicationModal = isOpen ? (
-    <div
-      className="
-        fixed inset-0 z-[99999]
-        flex items-center justify-center
-        overflow-y-auto
-        bg-[#07130E]/70
-        p-3 backdrop-blur-[6px]
-        sm:p-6
-      "
-      onMouseDown={(event) => {
-        if (
-          event.target === event.currentTarget &&
-          !isSubmitting
-        ) {
-          setIsOpen(false);
-        }
-      }}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="application-title"
-        aria-describedby="application-description"
-        className="
-          relative flex
-          max-h-[92dvh]
-          w-full max-w-[560px]
-          flex-col overflow-hidden
-          rounded-[26px]
-          border border-[#E9EDE8]
-          bg-white
-          shadow-[0_30px_100px_rgba(0,0,0,0.30)]
-          dark:border-[#30443A]
-          dark:bg-[#111B16]
-        "
-      >
-        {/* ================================= */}
-        {/* MODAL HEADER */}
-        {/* ================================= */}
-
-        <div
-          className="
-            flex shrink-0 items-start justify-between
-            border-b border-[#EDF0EB]
-            px-6 py-6
-            sm:px-8 sm:py-7
-            dark:border-[#293A30]
-          "
-        >
-          <div>
-            <div className="mb-3 flex items-center gap-2">
-
-              <span className="h-2 w-2 rounded-full bg-[#0F6844]" />
-
-              <p className="
-                text-[11px] font-bold uppercase
-                tracking-[0.18em]
-                text-[#0F6844]
-                dark:text-[#34D399]
-              ">
-                Tuition Application
-              </p>
-
-            </div>
-
-            <h2
-              id="application-title"
-              className="
-                text-[26px] font-extrabold
-                tracking-tight text-[#14201B]
-                sm:text-[30px]
-                dark:text-white
-              "
-            >
-              Apply for Tuition
-            </h2>
-
-            <p
-              id="application-description"
-              className="
-                mt-2 max-w-[380px]
-                text-sm leading-6
-                text-[#718078]
-                dark:text-[#A2B1A9]
-              "
-            >
-              Complete the information below to connect
-              with your preferred tutor.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setIsOpen(false)}
-            disabled={isSubmitting}
-            aria-label="Close application form"
-            className="
-              flex h-10 w-10 shrink-0
-              items-center justify-center
-              rounded-full
-              border border-[#E9EDE8]
-              text-[#68766E]
-              transition
-              hover:border-[#B8D7C6]
-              hover:bg-[#EDF6F0]
-              hover:text-[#075C3B]
-              disabled:opacity-40
-              dark:border-[#30443A]
-              dark:text-white
-              dark:hover:bg-[#1C2B25]
-            "
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* ================================= */}
-        {/* FORM BODY */}
-        {/* ================================= */}
-
-        <form
-          onSubmit={handleSubmit}
-          className="flex min-h-0 flex-1 flex-col"
-        >
-          <div
-            className="
-              min-h-0 flex-1 space-y-6
-              overflow-y-auto
-              px-6 py-6
-              sm:px-8 sm:py-7
-            "
-          >
-
-            {/* PHONE NUMBER */}
-
-            <div>
-              <label
-                htmlFor="studentPhone"
-                className="
-                  mb-2.5 block
-                  text-sm font-bold
-                  text-[#24352C]
-                  dark:text-white
-                "
-              >
-                Phone Number
-                <span className="ml-1 text-red-500">*</span>
-              </label>
-
-              <div className="relative">
-
-                <Phone
-                  size={19}
-                  className="
-                    pointer-events-none absolute
-                    left-4 top-1/2 -translate-y-1/2
-                    text-[#89988F]
-                  "
-                />
-
-                <input
-                  ref={phoneInputRef}
-                  id="studentPhone"
-                  type="tel"
-                  inputMode="tel"
-                  autoComplete="tel"
-                  required
-                  minLength={7}
-                  maxLength={20}
-                  value={phone}
-                  onChange={(event) =>
-                    setPhone(event.target.value)
-                  }
-                  placeholder="Enter your contact number"
-                  className="
-                    h-[58px] w-full
-                    rounded-2xl
-                    border border-[#E7E8DF]
-                    bg-[#FAF9F5]
-                    pl-12 pr-4
-                    text-[15px] text-[#14201B]
-                    outline-none
-                    transition-all duration-200
-                    placeholder:text-[#A1A59D]
-                    focus:border-[#0F6844]
-                    focus:bg-white
-                    focus:ring-4
-                    focus:ring-[#0F6844]/10
-                    dark:border-[#30443A]
-                    dark:bg-[#0B1210]
-                    dark:text-white
-                    dark:focus:bg-[#131C19]
-                  "
-                />
-
-              </div>
-            </div>
-
-            {/* PREFERRED SCHEDULE */}
-
-            <div>
-              <label
-                htmlFor="preferredSchedule"
-                className="
-                  mb-2.5 block
-                  text-sm font-bold
-                  text-[#24352C]
-                  dark:text-white
-                "
-              >
-                Preferred Schedule
-                <span className="ml-1 text-red-500">*</span>
-              </label>
-
-              <div className="relative">
-
-                <CalendarDays
-                  size={19}
-                  className="
-                    pointer-events-none absolute
-                    left-4 top-1/2 -translate-y-1/2
-                    text-[#89988F]
-                  "
-                />
-
-                <input
-                  id="preferredSchedule"
-                  type="text"
-                  required
-                  maxLength={200}
-                  value={preferredSchedule}
-                  onChange={(event) =>
-                    setPreferredSchedule(event.target.value)
-                  }
-                  placeholder="e.g. Sunday, Tuesday - 6 PM"
-                  className="
-                    h-[58px] w-full
-                    rounded-2xl
-                    border border-[#E7E8DF]
-                    bg-[#FAF9F5]
-                    pl-12 pr-4
-                    text-[15px] text-[#14201B]
-                    outline-none
-                    transition-all duration-200
-                    placeholder:text-[#A1A59D]
-                    focus:border-[#0F6844]
-                    focus:bg-white
-                    focus:ring-4
-                    focus:ring-[#0F6844]/10
-                    dark:border-[#30443A]
-                    dark:bg-[#0B1210]
-                    dark:text-white
-                    dark:focus:bg-[#131C19]
-                  "
-                />
-
-              </div>
-
-              <p className="mt-2 text-xs text-[#8A9891]">
-                Mention your preferred days and available time.
-              </p>
-            </div>
-
-            {/* LEARNING NOTE */}
-
-            <div>
-              <div className="mb-2.5 flex items-center justify-between">
-
-                <label
-                  htmlFor="studentNote"
-                  className="
-                    text-sm font-bold
-                    text-[#24352C]
-                    dark:text-white
-                  "
-                >
-                  Learning Note
-                  <span className="
-                    ml-2 font-normal
-                    text-[#98A49D]
-                  ">
-                    Optional
-                  </span>
-                </label>
-
-              </div>
-
-              <div className="relative">
-
-                <BookOpen
-                  size={19}
-                  className="
-                    pointer-events-none absolute
-                    left-4 top-4
-                    text-[#89988F]
-                  "
-                />
-
-                <textarea
-                  id="studentNote"
-                  rows={4}
-                  maxLength={1000}
-                  value={studentNote}
-                  onChange={(event) =>
-                    setStudentNote(event.target.value)
-                  }
-                  placeholder="Tell the tutor about your learning goals, current difficulties or expectations..."
-                  className="
-                    min-h-[130px] w-full
-                    resize-none rounded-2xl
-                    border border-[#E7E8DF]
-                    bg-[#FAF9F5]
-                    py-4 pl-12 pr-4
-                    text-[15px] leading-6
-                    text-[#14201B]
-                    outline-none
-                    transition-all duration-200
-                    placeholder:text-[#A1A59D]
-                    focus:border-[#0F6844]
-                    focus:bg-white
-                    focus:ring-4
-                    focus:ring-[#0F6844]/10
-                    dark:border-[#30443A]
-                    dark:bg-[#0B1210]
-                    dark:text-white
-                    dark:focus:bg-[#131C19]
-                  "
-                />
-
-              </div>
-
-              <p className="
-                mt-2 text-right
-                text-xs font-medium
-                tabular-nums text-[#98A49D]
-              ">
-                {studentNote.length}/1000
-              </p>
-            </div>
-
-            {/* PRIVACY NOTICE */}
-
-            <div className="
-              flex items-start gap-3
-              rounded-2xl
-              border border-[#E3EEE6]
-              bg-[#F1F7F2]
-              p-4
-              dark:border-[#30443A]
-              dark:bg-[#192820]
-            ">
-
-              <ShieldCheck
-                size={21}
-                className="
-                  mt-0.5 shrink-0
-                  text-[#0F6844]
-                  dark:text-[#34D399]
-                "
-              />
-
-              <div>
-                <p className="
-                  text-sm font-bold
-                  text-[#214832]
-                  dark:text-[#D1FAE5]
-                ">
-                  Your information is secure
-                </p>
-
-                <p className="
-                  mt-1 text-xs leading-5
-                  text-[#718078]
-                  dark:text-[#A2B1A9]
-                ">
-                  Your contact information and learning
-                  preferences will be shared with the
-                  relevant tutor for this application.
-                </p>
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* ================================= */}
-          {/* FIXED MODAL FOOTER */}
-          {/* ================================= */}
-
-          <div className="
-            grid shrink-0
-            grid-cols-1 gap-3
-            border-t border-[#EDF0EB]
-            bg-white px-6 py-5
-            sm:grid-cols-[0.8fr_1.2fr]
-            sm:px-8
-            dark:border-[#293A30]
-            dark:bg-[#111B16]
-          ">
-
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              disabled={isSubmitting}
-              className="
-                flex min-h-[54px]
-                items-center justify-center
-                rounded-2xl
-                border border-[#E2E6E0]
-                bg-white px-5
-                font-bold text-[#52635A]
-                transition-all
-                hover:border-[#B8D7C6]
-                hover:bg-[#F3F7F3]
-                disabled:opacity-50
-                dark:border-[#30443A]
-                dark:bg-[#131C19]
-                dark:text-white
-                dark:hover:bg-[#1C2B25]
-              "
-            >
-              Cancel
-            </button>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="
-                flex min-h-[54px]
-                items-center justify-center gap-2
-                rounded-2xl
-                bg-[#0F5132]
-                px-5
-                font-bold text-white
-                shadow-[0_5px_15px_rgba(15,81,50,0.18)]
-                transition-all duration-200
-                hover:-translate-y-0.5
-                hover:bg-[#0B3F27]
-                hover:shadow-lg
-                disabled:cursor-not-allowed
-                disabled:opacity-60
-                disabled:hover:translate-y-0
-                dark:bg-[#167A50]
-                dark:hover:bg-[#0F6844]
-              "
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2
-                    size={19}
-                    className="animate-spin"
-                  />
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  Submit Application
-                  <ArrowRight size={19} />
-                </>
-              )}
-            </button>
-
-          </div>
-        </form>
-
-      </div>
-    </div>
-  ) : null;
-
-  // ==========================================
-  // MAIN BUTTON
+  // COMPONENT UI
   // ==========================================
 
   return (
     <>
+      {/* APPLY BUTTON */}
+
       <button
         type="button"
         onClick={handleApply}
@@ -782,22 +333,7 @@ export default function ApplyTuitionButton({ tuitionId }: Props) {
           isApplied ||
           (role !== null && role !== "student")
         }
-        className="
-          flex w-full items-center justify-center gap-2
-          rounded-xl bg-[#0F5132]
-          px-6 py-4
-          font-bold text-white
-          shadow-md
-          transition-all duration-200
-          hover:-translate-y-0.5
-          hover:bg-[#0B3F27]
-          hover:shadow-lg
-          disabled:cursor-not-allowed
-          disabled:opacity-60
-          dark:bg-[#34D399]
-          dark:text-[#0B1210]
-          dark:hover:bg-[#6EE7B7]
-        "
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#0F5132] px-6 py-4 font-bold text-white shadow-md transition hover:bg-[#0B3F27] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#34D399] dark:text-[#0B1210] dark:hover:bg-[#6EE7B7]"
       >
         {!authChecked ? (
           <>
@@ -805,10 +341,7 @@ export default function ApplyTuitionButton({ tuitionId }: Props) {
             Checking Account...
           </>
         ) : isApplied ? (
-          <>
-            <CheckCircle2 size={19} />
-            Application Submitted
-          </>
+          "Application Submitted"
         ) : role && role !== "student" ? (
           "Students Only"
         ) : (
@@ -822,17 +355,180 @@ export default function ApplyTuitionButton({ tuitionId }: Props) {
         )}
       </button>
 
+      {/* ROLE RESTRICTION MESSAGE */}
+
       {authChecked && role && role !== "student" && (
         <p className="mt-3 text-center text-xs text-[#B45309]">
           Only student accounts are allowed to apply.
         </p>
       )}
 
-      {/* PORTAL: RENDERS MODAL DIRECTLY UNDER BODY */}
+      {/* APPLICATION MODAL */}
 
-      {typeof document !== "undefined" &&
-        applicationModal &&
-        createPortal(applicationModal, document.body)}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+          onClick={() => !isSubmitting && setIsOpen(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="application-title"
+            className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-[#E5E1D8] bg-white p-6 shadow-2xl dark:border-[#2A3A32] dark:bg-[#131C19] md:p-8"
+            onClick={(event) => event.stopPropagation()}
+          >
+            {/* MODAL HEADER */}
+
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-wider text-[#0F5132] dark:text-[#34D399]">
+                  Tuition Application
+                </p>
+
+                <h2
+                  id="application-title"
+                  className="mt-2 text-2xl font-bold text-[#14201B] dark:text-white"
+                >
+                  Apply for Tuition
+                </h2>
+
+                <p className="mt-2 text-sm text-[#5B6B64] dark:text-[#A2B1A9]">
+                  Provide your details to apply for this opportunity.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                disabled={isSubmitting}
+                aria-label="Close application form"
+                className="rounded-full p-2 text-[#5B6B64] transition hover:bg-[#EAF1EC] dark:text-white dark:hover:bg-[#1C2B25]"
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            {/* APPLICATION FORM */}
+
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-5"
+            >
+              {/* PHONE NUMBER */}
+
+              <div>
+                <label
+                  htmlFor="studentPhone"
+                  className="mb-2 block text-sm font-semibold text-[#14201B] dark:text-white"
+                >
+                  Phone Number *
+                </label>
+
+                <input
+                  id="studentPhone"
+                  type="tel"
+                  required
+                  minLength={7}
+                  maxLength={20}
+                  value={phone}
+                  onChange={(event) =>
+                    setPhone(event.target.value)
+                  }
+                  placeholder="Enter your contact number"
+                  className="w-full rounded-xl border border-[#E5E1D8] bg-[#FBF8F3] px-4 py-3 text-[#14201B] outline-none transition focus:border-[#0F5132] focus:ring-2 focus:ring-[#0F5132]/10 dark:border-[#2A3A32] dark:bg-[#0B1210] dark:text-white"
+                />
+              </div>
+
+              {/* PREFERRED SCHEDULE */}
+
+              <div>
+                <label
+                  htmlFor="preferredSchedule"
+                  className="mb-2 block text-sm font-semibold text-[#14201B] dark:text-white"
+                >
+                  Preferred Schedule *
+                </label>
+
+                <input
+                  id="preferredSchedule"
+                  type="text"
+                  required
+                  maxLength={200}
+                  value={preferredSchedule}
+                  onChange={(event) =>
+                    setPreferredSchedule(event.target.value)
+                  }
+                  placeholder="e.g. Sunday, Tuesday, Thursday - 6 PM"
+                  className="w-full rounded-xl border border-[#E5E1D8] bg-[#FBF8F3] px-4 py-3 text-[#14201B] outline-none transition focus:border-[#0F5132] focus:ring-2 focus:ring-[#0F5132]/10 dark:border-[#2A3A32] dark:bg-[#0B1210] dark:text-white"
+                />
+              </div>
+
+              {/* LEARNING NOTE */}
+
+              <div>
+                <label
+                  htmlFor="studentNote"
+                  className="mb-2 block text-sm font-semibold text-[#14201B] dark:text-white"
+                >
+                  Learning Note
+
+                  <span className="ml-1 font-normal text-[#8A9891]">
+                    (Optional)
+                  </span>
+                </label>
+
+                <textarea
+                  id="studentNote"
+                  rows={4}
+                  maxLength={1000}
+                  value={studentNote}
+                  onChange={(event) =>
+                    setStudentNote(event.target.value)
+                  }
+                  placeholder="Tell the tutor about your learning goals..."
+                  className="w-full resize-none rounded-xl border border-[#E5E1D8] bg-[#FBF8F3] px-4 py-3 text-[#14201B] outline-none transition focus:border-[#0F5132] focus:ring-2 focus:ring-[#0F5132]/10 dark:border-[#2A3A32] dark:bg-[#0B1210] dark:text-white"
+                />
+
+                <p className="mt-1 text-right text-xs text-[#8A9891]">
+                  {studentNote.length}/1000
+                </p>
+              </div>
+
+              {/* FORM ACTIONS */}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  disabled={isSubmitting}
+                  className="flex-1 rounded-xl border border-[#E5E1D8] px-5 py-3 font-semibold text-[#5B6B64] transition hover:bg-[#F5F3EE] dark:border-[#2A3A32] dark:text-white dark:hover:bg-[#1C2B25]"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#0F5132] px-5 py-3 font-semibold text-white transition hover:bg-[#0B3F27] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#34D399] dark:text-[#0B1210]"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2
+                        size={18}
+                        className="animate-spin"
+                      />
+
+                      Submitting...
+                    </>
+                  ) : (
+                    "Submit Application"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }

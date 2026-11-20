@@ -1,11 +1,29 @@
+
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import GoogleAuthButton from "@/components/auth/google-auth-button";
+
+import {
+  Eye,
+  EyeOff,
+  GraduationCap,
+  ArrowRight,
+  Loader2,
+  BookOpen,
+  Users,
+  ShieldCheck,
+  UserRound,
+} from "lucide-react";
 
 const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:5000/api";
+
+type UserRole = "student" | "tutor";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -13,420 +31,520 @@ export default function SignUpPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("student");
+
+  const [role, setRole] = useState<UserRole>("student");
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
+  async function handleSubmit(
+    e: FormEvent<HTMLFormElement>
+  ) {
+    e.preventDefault();
     setError("");
-    setSuccess("");
+
+    const normalizedName = name.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (normalizedName.length < 2) {
+      setError("Name must contain at least 2 characters.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(normalizedEmail)) {
+      setError("Please provide a valid email address.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (!["student", "tutor"].includes(role)) {
+      setError("Please select a valid account type.");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-          role,
-        }),
+      const response = await fetch(
+        `${API_URL}/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: normalizedName,
+            email: normalizedEmail,
+            password,
+            role,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(
+          result.message || "Registration failed."
+        );
+      }
+
+      toast.success("Account created successfully!", {
+        description:
+          "Your MentorLagbe account is ready. Please sign in to continue.",
       });
 
-      const responseText = await response.text();
+      // The existing register endpoint creates the account
+      // but does not issue a JWT. Therefore, send the user
+      // to the normal sign-in page.
 
-      console.log("REGISTER URL:", `${API_URL}/auth/register`);
-      console.log("REGISTER STATUS:", response.status);
-      console.log("REGISTER RAW RESPONSE:", responseText);
+      router.replace("/sign-in");
 
-      let result;
-
-      try {
-        result = JSON.parse(responseText);
-      } catch {
-        throw new Error(
-          "Server returned an invalid response. Please check the API URL."
-        );
-      }
-
-      if (!response.ok) {
-        throw new Error(
-          result?.message ||
-            result?.error ||
-            `Registration failed (${response.status})`
-        );
-      }
-
-      console.log("REGISTER SUCCESS:", result);
-
-      setSuccess("Account created successfully! Redirecting to sign in...");
-
-      setName("");
-      setEmail("");
-      setPassword("");
-      setRole("student");
-
-      setTimeout(() => {
-        router.push("/sign-in");
-      }, 1200);
     } catch (err) {
-      console.error("REGISTER ERROR:", err);
+      console.error("Registration error:", err);
 
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Registration failed. Please try again.");
-      }
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.";
+
+      setError(message);
+
+      toast.error("Registration failed", {
+        description: message,
+      });
+
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <main
-      style={{
-        minHeight: "calc(100vh - 94px)",
-        background: "#faf8f3",
-        padding: "60px 20px 80px",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "560px",
-          margin: "0 auto",
-          textAlign: "center",
-        }}
-      >
-        {/* Logo */}
-        <div
-          style={{
-            width: "64px",
-            height: "64px",
-            margin: "0 auto 24px",
-            borderRadius: "20px",
-            background: "#075c3d",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "white",
-            boxShadow: "0 8px 20px rgba(0,0,0,0.10)",
-          }}
-        >
-          <svg
-            width="34"
-            height="34"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+    <main className="flex min-h-screen items-center justify-center bg-[#f5f7f4] px-4 py-10">
+
+      <div className="grid w-full max-w-6xl overflow-hidden rounded-3xl border border-[#e5ebe5] bg-white shadow-xl shadow-gray-200/50 lg:grid-cols-2">
+
+        {/* LEFT BRANDING SECTION */}
+
+        <section className="relative hidden flex-col justify-between overflow-hidden bg-[#075c3d] p-12 text-white lg:flex">
+
+          <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full border border-white/10" />
+
+          <div className="absolute -bottom-32 -left-24 h-96 w-96 rounded-full border border-white/10" />
+
+          <div className="relative z-10">
+
+            <Link href="/" className="flex items-center gap-3">
+
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-[#075c3d]">
+                <GraduationCap size={29} />
+              </div>
+
+              <span className="text-2xl font-extrabold tracking-tight">
+                MentorLagbe
+              </span>
+
+            </Link>
+
+            <div className="mt-24">
+
+              <p className="mb-4 text-xs font-bold uppercase tracking-[3px] text-emerald-200">
+                Join Our Community
+              </p>
+
+              <h1 className="max-w-md text-5xl font-extrabold leading-tight tracking-tight">
+                Build your future with the right guidance.
+              </h1>
+
+              <p className="mt-6 max-w-md text-base leading-8 text-emerald-100">
+                Whether you want to learn or teach, MentorLagbe
+                helps you connect with the right people and
+                discover new opportunities.
+              </p>
+
+            </div>
+
+          </div>
+
+          {/* FEATURES */}
+
+          <div className="relative z-10 mt-16 space-y-5">
+
+            <div className="flex items-center gap-4">
+
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
+                <BookOpen size={21} />
+              </div>
+
+              <div>
+                <p className="font-semibold">
+                  Discover Opportunities
+                </p>
+
+                <p className="text-sm text-emerald-200">
+                  Explore quality tuition opportunities.
+                </p>
+              </div>
+
+            </div>
+
+            <div className="flex items-center gap-4">
+
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
+                <Users size={21} />
+              </div>
+
+              <div>
+                <p className="font-semibold">
+                  Grow Together
+                </p>
+
+                <p className="text-sm text-emerald-200">
+                  Become part of a trusted learning community.
+                </p>
+              </div>
+
+            </div>
+
+            <p className="pt-8 text-xs text-emerald-200">
+              © 2026 MentorLagbe. All rights reserved.
+            </p>
+
+          </div>
+
+        </section>
+
+        {/* RIGHT REGISTRATION SECTION */}
+
+        <section className="flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-14">
+
+          {/* MOBILE LOGO */}
+
+          <Link
+            href="/"
+            className="mb-8 flex items-center gap-3 lg:hidden"
           >
-            <path d="M3 7l9-4 9 4-9 4-9-4Z" />
-            <path d="M5 9v5c0 2 3.1 4 7 4s7-2 7-4V9" />
-            <path d="M21 7v6" />
-          </svg>
-        </div>
 
-        {/* Heading */}
-        <h1
-          style={{
-            margin: "0",
-            fontSize: "40px",
-            lineHeight: "1.15",
-            fontWeight: 700,
-            color: "#071d24",
-          }}
-        >
-          Create Your Account
-        </h1>
-
-        <p
-          style={{
-            marginTop: "12px",
-            marginBottom: "32px",
-            fontSize: "18px",
-            color: "#58717a",
-          }}
-        >
-          Join MentorLagbe and start your learning journey
-        </p>
-
-        {/* Card */}
-        <div
-          style={{
-            background: "#ffffff",
-            border: "1px solid #e5e1d9",
-            borderRadius: "24px",
-            padding: "38px",
-            textAlign: "left",
-            boxShadow: "0 4px 15px rgba(0,0,0,0.06)",
-          }}
-        >
-          {/* Error */}
-          {error && (
-            <div
-              style={{
-                background: "#fff1f1",
-                border: "1px solid #ffbcbc",
-                color: "#c90000",
-                borderRadius: "18px",
-                padding: "15px 18px",
-                marginBottom: "24px",
-                fontSize: "15px",
-                lineHeight: "1.5",
-              }}
-            >
-              {error}
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#075c3d] text-white">
+              <GraduationCap size={25} />
             </div>
-          )}
 
-          {/* Success */}
-          {success && (
-            <div
-              style={{
-                background: "#eefaf3",
-                border: "1px solid #a9dec0",
-                color: "#075c3d",
-                borderRadius: "18px",
-                padding: "15px 18px",
-                marginBottom: "24px",
-                fontSize: "15px",
-                lineHeight: "1.5",
-              }}
-            >
-              {success}
+            <span className="text-xl font-extrabold text-[#075c3d]">
+              MentorLagbe
+            </span>
+
+          </Link>
+
+          <div className="mx-auto w-full max-w-md">
+
+            {/* HEADING */}
+
+            <div className="mb-7">
+
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#eaf4ed] text-[#075c3d]">
+                <ShieldCheck size={25} />
+              </div>
+
+              <h2 className="text-3xl font-extrabold tracking-tight text-[#14251c]">
+                Create Your Account
+              </h2>
+
+              <p className="mt-3 text-sm leading-6 text-gray-500">
+                Join MentorLagbe and start your learning or
+                teaching journey today.
+              </p>
+
             </div>
-          )}
 
-          <form onSubmit={handleSubmit}>
-            {/* Name */}
-            <div style={{ marginBottom: "20px" }}>
-              <label
-                htmlFor="name"
-                style={{
-                  display: "block",
-                  marginBottom: "9px",
-                  fontSize: "16px",
-                  fontWeight: 600,
-                  color: "#071d24",
-                }}
+            {/* ERROR */}
+
+            {error && (
+              <div
+                role="alert"
+                className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
               >
-                Full Name
-              </label>
+                {error}
+              </div>
+            )}
 
-              <input
-                id="name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your full name"
-                required
-                minLength={2}
-                autoComplete="name"
-                style={inputStyle}
-              />
-            </div>
+            {/* ROLE SELECTION */}
 
-            {/* Email */}
-            <div style={{ marginBottom: "20px" }}>
-              <label
-                htmlFor="email"
-                style={{
-                  display: "block",
-                  marginBottom: "9px",
-                  fontSize: "16px",
-                  fontWeight: 600,
-                  color: "#071d24",
-                }}
-              >
-                Email Address
-              </label>
+            <div className="mb-6">
 
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                required
-                autoComplete="email"
-                style={inputStyle}
-              />
-            </div>
+              <p className="mb-3 text-sm font-semibold text-[#26372d]">
+                I want to join as
+              </p>
 
-            {/* Password */}
-            <div style={{ marginBottom: "20px" }}>
-              <label
-                htmlFor="password"
-                style={{
-                  display: "block",
-                  marginBottom: "9px",
-                  fontSize: "16px",
-                  fontWeight: 600,
-                  color: "#071d24",
-                }}
-              >
-                Password
-              </label>
+              <div className="grid grid-cols-2 gap-3">
 
-              <div style={{ position: "relative" }}>
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Create a password"
-                  required
-                  minLength={6}
-                  autoComplete="new-password"
-                  style={{
-                    ...inputStyle,
-                    paddingRight: "55px",
-                  }}
-                />
+                {/* STUDENT */}
 
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={
-                    showPassword ? "Hide password" : "Show password"
-                  }
-                  style={{
-                    position: "absolute",
-                    right: "15px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    border: "none",
-                    background: "transparent",
-                    cursor: "pointer",
-                    color: "#60736f",
-                    fontSize: "20px",
-                  }}
+                  onClick={() => setRole("student")}
+                  disabled={loading}
+                  aria-pressed={role === "student"}
+                  className={`rounded-xl border-2 p-4 text-left transition ${
+                    role === "student"
+                      ? "border-[#075c3d] bg-[#eaf4ed]"
+                      : "border-[#e5ebe5] bg-white hover:border-[#a9cbb6]"
+                  }`}
                 >
-                  {showPassword ? "◉" : "◌"}
+
+                  <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${
+                    role === "student"
+                      ? "bg-[#075c3d] text-white"
+                      : "bg-[#f1f5f1] text-[#63736d]"
+                  }`}>
+                    <GraduationCap size={22} />
+                  </div>
+
+                  <p className="font-bold text-[#14251c]">
+                    Student
+                  </p>
+
+                  <p className="mt-1 text-xs text-gray-500">
+                    Find qualified tutors
+                  </p>
+
                 </button>
+
+                {/* TUTOR */}
+
+                <button
+                  type="button"
+                  onClick={() => setRole("tutor")}
+                  disabled={loading}
+                  aria-pressed={role === "tutor"}
+                  className={`rounded-xl border-2 p-4 text-left transition ${
+                    role === "tutor"
+                      ? "border-[#075c3d] bg-[#eaf4ed]"
+                      : "border-[#e5ebe5] bg-white hover:border-[#a9cbb6]"
+                  }`}
+                >
+
+                  <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${
+                    role === "tutor"
+                      ? "bg-[#075c3d] text-white"
+                      : "bg-[#f1f5f1] text-[#63736d]"
+                  }`}>
+                    <UserRound size={22} />
+                  </div>
+
+                  <p className="font-bold text-[#14251c]">
+                    Tutor
+                  </p>
+
+                  <p className="mt-1 text-xs text-gray-500">
+                    Teach and connect
+                  </p>
+
+                </button>
+
               </div>
 
-              <p
-                style={{
-                  marginTop: "7px",
-                  fontSize: "13px",
-                  color: "#718187",
-                }}
+            </div>
+
+            {/* REGISTRATION FORM */}
+
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-5"
+            >
+
+              {/* FULL NAME */}
+
+              <div>
+
+                <label
+                  htmlFor="name"
+                  className="mb-2 block text-sm font-semibold text-[#26372d]"
+                >
+                  Full Name
+                </label>
+
+                <input
+                  id="name"
+                  type="text"
+                  autoComplete="name"
+                  placeholder="Enter your full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  minLength={2}
+                  disabled={loading}
+                  className="h-13 w-full rounded-xl border border-[#dfe7df] bg-[#fafcf9] px-4 py-3 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[#075c3d] focus:ring-4 focus:ring-[#075c3d]/10 disabled:opacity-60"
+                />
+
+              </div>
+
+              {/* EMAIL */}
+
+              <div>
+
+                <label
+                  htmlFor="email"
+                  className="mb-2 block text-sm font-semibold text-[#26372d]"
+                >
+                  Email Address
+                </label>
+
+                <input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={loading}
+                  className="h-13 w-full rounded-xl border border-[#dfe7df] bg-[#fafcf9] px-4 py-3 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[#075c3d] focus:ring-4 focus:ring-[#075c3d]/10 disabled:opacity-60"
+                />
+
+              </div>
+
+              {/* PASSWORD */}
+
+              <div>
+
+                <label
+                  htmlFor="password"
+                  className="mb-2 block text-sm font-semibold text-[#26372d]"
+                >
+                  Password
+                </label>
+
+                <div className="relative">
+
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    placeholder="Create a password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    disabled={loading}
+                    className="h-13 w-full rounded-xl border border-[#dfe7df] bg-[#fafcf9] px-4 py-3 pr-12 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[#075c3d] focus:ring-4 focus:ring-[#075c3d]/10 disabled:opacity-60"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-[#075c3d]"
+                    aria-label={
+                      showPassword
+                        ? "Hide password"
+                        : "Show password"
+                    }
+                  >
+                    {showPassword ? (
+                      <EyeOff size={19} />
+                    ) : (
+                      <Eye size={19} />
+                    )}
+                  </button>
+
+                </div>
+
+                <p className="mt-2 text-xs text-gray-400">
+                  Password must contain at least 6 characters.
+                </p>
+
+              </div>
+
+              {/* SUBMIT BUTTON */}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-[#075c3d] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[#075c3d]/15 transition hover:bg-[#064b32] disabled:cursor-not-allowed disabled:opacity-70"
               >
-                Password must be at least 6 characters.
+
+                {loading ? (
+                  <>
+                    <Loader2
+                      size={19}
+                      className="animate-spin"
+                    />
+                    Creating Account...
+                  </>
+                ) : (
+                  <>
+                    Create Account
+                    <ArrowRight size={18} />
+                  </>
+                )}
+
+              </button>
+
+            </form>
+
+            {/* DIVIDER */}
+
+            <div className="my-6 flex items-center gap-4">
+
+              <div className="h-px flex-1 bg-[#e5e0d7]" />
+
+              <span className="text-xs font-semibold tracking-wider text-gray-400">
+                OR SIGN UP WITH
+              </span>
+
+              <div className="h-px flex-1 bg-[#e5e0d7]" />
+
+            </div>
+
+            {/* GOOGLE SIGN UP */}
+
+            <GoogleAuthButton
+              role={role}
+              text="signup_with"
+            />
+
+            {/* SIGN IN LINK */}
+
+            <div className="mt-8 text-center">
+
+              <p className="text-sm text-gray-500">
+                Already have an account?{" "}
+
+                <Link
+                  href="/sign-in"
+                  className="font-bold text-[#075c3d] transition hover:text-[#06452e]"
+                >
+                  Sign In
+                </Link>
               </p>
+
             </div>
 
-            {/* Role */}
-            <div style={{ marginBottom: "28px" }}>
-              <label
-                htmlFor="role"
-                style={{
-                  display: "block",
-                  marginBottom: "9px",
-                  fontSize: "16px",
-                  fontWeight: 600,
-                  color: "#071d24",
-                }}
-              >
-                I want to join as
-              </label>
+            {/* FOOTER */}
 
-              <select
-                id="role"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                required
-                style={{
-                  ...inputStyle,
-                  cursor: "pointer",
-                  appearance: "auto",
-                }}
+            <div className="mt-8 border-t border-[#edf0ed] pt-6 text-center">
+
+              <Link
+                href="/"
+                className="text-xs font-medium text-gray-400 transition hover:text-[#075c3d]"
               >
-                <option value="student">Student</option>
-                <option value="tutor">Tutor</option>
-              </select>
+                ← Back to Homepage
+              </Link>
+
             </div>
 
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                width: "100%",
-                height: "58px",
-                border: "none",
-                borderRadius: "16px",
-                background: loading ? "#6b9a87" : "#075c3d",
-                color: "#ffffff",
-                fontSize: "17px",
-                fontWeight: 700,
-                cursor: loading ? "not-allowed" : "pointer",
-                transition: "0.2s",
-              }}
-            >
-              {loading ? "Creating Account..." : "Create Account  →"}
-            </button>
-          </form>
-
-          {/* Divider */}
-          <div
-            style={{
-              height: "1px",
-              background: "#e4dfd7",
-              margin: "30px 0 24px",
-            }}
-          />
-
-          {/* Sign in */}
-          <div
-            style={{
-              textAlign: "center",
-              fontSize: "16px",
-              color: "#58717a",
-            }}
-          >
-            Already have an account?
-            <br />
-
-            <Link
-              href="/sign-in"
-              style={{
-                display: "inline-block",
-                marginTop: "7px",
-                color: "#075c3d",
-                fontWeight: 700,
-                textDecoration: "none",
-              }}
-            >
-              Sign In
-            </Link>
           </div>
-        </div>
+
+        </section>
+
       </div>
+
     </main>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  height: "56px",
-  boxSizing: "border-box",
-  border: "1px solid #ded9d1",
-  borderRadius: "16px",
-  background: "#fbfaf7",
-  padding: "0 17px",
-  fontSize: "16px",
-  color: "#071d24",
-  outline: "none",
-};

@@ -627,7 +627,9 @@ export default function AdminTuitionManagement() {
               item.label === "Overview" ||
               item.label === "User Management" ||
               item.label === "Tutors" ||
-              item.label === "Tuition Management";
+              item.label === "Students" ||
+              item.label === "Tuition Management" ||
+              item.label === "Applications";
 
             const active = item.label === "Tuition Management";
 
@@ -644,8 +646,13 @@ export default function AdminTuitionManagement() {
                     router.push("/dashboard/admin/users");
                   } else if (item.label === "Tutors") {
                     router.push("/dashboard/admin/tutors");
+                  } else if (item.label === "Students") {
+                    router.push("/dashboard/admin/students");
                   } else if (item.label === "Tuition Management") {
                     router.push("/dashboard/admin/tuitions");
+                  }
+                  else if (item.label === "Applications") {
+                    router.push("/dashboard/admin/applications");
                   }
 
                   setMobileOpen(false);

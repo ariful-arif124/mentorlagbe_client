@@ -616,27 +616,29 @@ export default function AdminTutorsPage() {
                         Tuition Management
                     </button>
 
-                    {/* COMING SOON */}
-                    {[
-                        { label: "Applications", icon: ClipboardList },
-                        { label: "Payments", icon: CreditCard },
-                    ].map((item) => {
-                        const Icon = item.icon;
+                    {/* APPLICATIONS */}
 
-                        return (
-                            <div
-                                key={item.label}
-                                className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-gray-400"
-                            >
-                                <Icon size={19} />
-                                <span>{item.label}</span>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setMobileOpen(false);
+                            router.push("/dashboard/admin/applications");
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-gray-500 transition hover:bg-[#f5f7f5] hover:text-[#075c3d]"
+                    >
+                        <ClipboardList size={19} />
+                        Applications
+                    </button>
 
-                                <span className="ml-auto text-[9px] font-semibold uppercase">
-                                    Soon
-                                </span>
-                            </div>
-                        );
-                    })}
+                    {/* PAYMENTS - COMING SOON */}
+
+                    <div className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-gray-400">
+                        <CreditCard size={19} />
+                        <span>Payments</span>
+                        <span className="ml-auto text-[9px] font-semibold uppercase">
+                            Soon
+                        </span>
+                    </div>
 
                     <div className="my-5 border-t border-[#edf0ed]" />
 
@@ -979,8 +981,8 @@ export default function AdminTutorsPage() {
                                                 <td className="px-6 py-5">
                                                     <span
                                                         className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold ${tutor.isActive
-                                                                ? "bg-emerald-50 text-emerald-700"
-                                                                : "bg-red-50 text-red-600"
+                                                            ? "bg-emerald-50 text-emerald-700"
+                                                            : "bg-red-50 text-red-600"
                                                             }`}
                                                     >
                                                         {tutor.isActive ? (
@@ -1021,8 +1023,8 @@ export default function AdminTutorsPage() {
                                                                     : "Activate tutor"
                                                             }
                                                             className={`flex min-w-[95px] items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold transition disabled:opacity-50 ${tutor.isActive
-                                                                    ? "bg-red-50 text-red-600 hover:bg-red-100"
-                                                                    : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                                                ? "bg-red-50 text-red-600 hover:bg-red-100"
+                                                                : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                                                                 }`}
                                                         >
                                                             {updatingId === tutor.userId ? (
@@ -1239,8 +1241,8 @@ export default function AdminTutorsPage() {
                                         onClick={() => toggleTutorStatus(selectedTutor)}
                                         disabled={updatingId === selectedTutor.userId}
                                         className={`rounded-xl px-5 py-2.5 text-sm font-semibold disabled:opacity-50 ${selectedTutor.isActive
-                                                ? "bg-red-50 text-red-600 hover:bg-red-100"
-                                                : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                            ? "bg-red-50 text-red-600 hover:bg-red-100"
+                                            : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                                             }`}
                                     >
                                         {updatingId === selectedTutor.userId ? (

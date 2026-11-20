@@ -289,7 +289,8 @@ export default function AdminDashboard() {
                             item.label === "User Management" ||
                             item.label === "Tutors" ||
                             item.label === "Students" ||
-                            item.label === "Tuition Management";
+                            item.label === "Tuition Management"||
+                            item.label === "Applications";
 
                         return (
                             <button
@@ -308,6 +309,9 @@ export default function AdminDashboard() {
                                         router.push("/dashboard/admin/students");
                                     } else if (item.label === "Tuition Management") {
                                         router.push("/dashboard/admin/tuitions");
+                                    }
+                                    else if (item.label === "Applications") {
+                                        router.push("/dashboard/admin/applications");
                                     }
                                 }}
                                 className={`

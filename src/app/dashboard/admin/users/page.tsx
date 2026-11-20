@@ -529,26 +529,29 @@ export default function AdminUsersPage() {
             Tuition Management
           </button>
 
-          {/* Coming Soon */}
-          {[
-            { label: "Applications", icon: ClipboardList },
-            { label: "Payments", icon: CreditCard },
-          ].map((item) => {
-            const Icon = item.icon;
+          {/* APPLICATIONS */}
 
-            return (
-              <div
-                key={item.label}
-                className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-gray-400"
-              >
-                <Icon size={19} />
-                <span>{item.label}</span>
-                <span className="ml-auto text-[9px] font-semibold uppercase text-gray-400">
-                  Soon
-                </span>
-              </div>
-            );
-          })}
+          <button
+            type="button"
+            onClick={() => {
+              setMobileOpen(false);
+              router.push("/dashboard/admin/applications");
+            }}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-gray-500 transition hover:bg-[#f5f7f5] hover:text-[#075c3d]"
+          >
+            <ClipboardList size={19} />
+            Applications
+          </button>
+
+          {/* PAYMENTS - COMING SOON */}
+
+          <div className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-gray-400">
+            <CreditCard size={19} />
+            <span>Payments</span>
+            <span className="ml-auto text-[9px] font-semibold uppercase">
+              Soon
+            </span>
+          </div>
 
           <div className="my-5 border-t border-[#edf0ed]" />
 

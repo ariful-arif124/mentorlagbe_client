@@ -39,10 +39,13 @@ import {
   LayoutList,
 } from "lucide-react";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:5000/api";
+const BASE_URL = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+).replace(/\/+$/, "");
 
+const API_URL = BASE_URL.endsWith("/api")
+  ? BASE_URL
+  : `${BASE_URL}/api`;
 // ==========================================
 // TYPES
 // ==========================================
@@ -595,7 +598,7 @@ export default function MyTuitionsPage() {
         id: toastId,
         description:
           error instanceof Error &&
-          error.message !== "SESSION_EXPIRED"
+            error.message !== "SESSION_EXPIRED"
             ? error.message
             : "Unable to update your tuition.",
       });
@@ -690,7 +693,7 @@ export default function MyTuitionsPage() {
         id: toastId,
         description:
           error instanceof Error &&
-          error.message !== "SESSION_EXPIRED"
+            error.message !== "SESSION_EXPIRED"
             ? error.message
             : "Unable to update tuition status.",
       });
@@ -758,7 +761,7 @@ export default function MyTuitionsPage() {
         id: toastId,
         description:
           error instanceof Error &&
-          error.message !== "SESSION_EXPIRED"
+            error.message !== "SESSION_EXPIRED"
             ? error.message
             : "Unable to delete your tuition.",
       });
@@ -1097,10 +1100,10 @@ export default function MyTuitionsPage() {
                     style={
                       tuition.bannerImage
                         ? {
-                            backgroundImage: `linear-gradient(90deg, rgba(7,47,30,0.50), rgba(7,47,30,0.08)), url("${tuition.bannerImage}")`,
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                          }
+                          backgroundImage: `linear-gradient(90deg, rgba(7,47,30,0.50), rgba(7,47,30,0.08)), url("${tuition.bannerImage}")`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }
                         : undefined
                     }
                   >
@@ -1235,11 +1238,10 @@ export default function MyTuitionsPage() {
                             ? "Admin approval is required first"
                             : ""
                         }
-                        className={`flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-extrabold transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                          tuition.isActive
+                        className={`flex items-center justify-center gap-2 rounded-xl py-3 text-xs font-extrabold transition disabled:cursor-not-allowed disabled:opacity-50 ${tuition.isActive
                             ? "bg-amber-50 text-amber-700 hover:bg-amber-100"
                             : "bg-[#075c3b] text-white hover:bg-[#087448]"
-                        }`}
+                          }`}
                       >
                         {isBusy ? (
                           <Loader2

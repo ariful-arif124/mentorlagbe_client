@@ -36,10 +36,13 @@ import {
 // CONFIGURATION
 // ==========================================
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:5000/api";
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+).replace(/\/+$/, "");
 
+const API_URL = API_BASE_URL.endsWith("/api")
+  ? API_BASE_URL
+  : `${API_BASE_URL}/api`;
 const LIMIT = 10;
 
 // ==========================================
@@ -1326,11 +1329,10 @@ export default function TutorApplicantsPage() {
           <div className="w-full max-w-md rounded-[26px] bg-white p-7 shadow-2xl">
 
             <div
-              className={`mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${
-                actionTarget.status === "accepted"
+              className={`mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${actionTarget.status === "accepted"
                   ? "bg-emerald-50 text-emerald-700"
                   : "bg-red-50 text-red-600"
-              }`}
+                }`}
             >
               {actionTarget.status === "accepted" ? (
                 <UserCheck size={27} />
@@ -1376,11 +1378,10 @@ export default function TutorApplicantsPage() {
                 type="button"
                 disabled={actionLoading}
                 onClick={handleUpdateStatus}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-extrabold text-white transition disabled:opacity-50 ${
-                  actionTarget.status === "accepted"
+                className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-extrabold text-white transition disabled:opacity-50 ${actionTarget.status === "accepted"
                     ? "bg-[#075c3b] hover:bg-[#087448]"
                     : "bg-red-600 hover:bg-red-700"
-                }`}
+                  }`}
               >
                 {actionLoading ? (
                   <>

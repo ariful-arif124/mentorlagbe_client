@@ -110,9 +110,6 @@ export default function SignInPage() {
         loggedInUser.role
       );
 
-      // Save authentication data.
-      // Both formats are maintained for compatibility.
-
       localStorage.setItem("token", token);
       localStorage.setItem(
         "user",
@@ -128,6 +125,88 @@ export default function SignInPage() {
         "mentorlagbe_user",
         JSON.stringify(loggedInUser)
       );
+
+      const params = new URLSearchParams(
+        window.location.search
+      );
+
+      const requestedPlan = params.get("plan");
+      const requestedRole = params.get("role");
+
+      if (requestedPlan === "pro") {
+        if (
+          requestedRole &&
+          requestedRole !== loggedInUser.role.toLowerCase()
+        ) {
+          toast.error("Membership role mismatch", {
+            description:
+              "Your selected membership does not match your account type.",
+          });
+
+          router.replace(dashboard);
+          router.refresh();
+          return;
+        }
+
+        try {
+          const checkoutResponse = await fetch(
+            `${API_URL}/payments/checkout-session`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                plan: "pro",
+              }),
+            }
+          );
+
+          const checkoutResult =
+            await checkoutResponse.json();
+
+          if (
+            !checkoutResponse.ok ||
+            !checkoutResult.success ||
+            !checkoutResult.data?.checkoutUrl
+          ) {
+            throw new Error(
+              checkoutResult.message ||
+                "Unable to start Stripe checkout."
+            );
+          }
+
+          toast.success("Login successful!", {
+            description:
+              "Redirecting to secure Stripe checkout.",
+          });
+
+          window.location.assign(
+            checkoutResult.data.checkoutUrl
+          );
+
+          return;
+        } catch (checkoutError) {
+          console.error(
+            "Stripe checkout error:",
+            checkoutError
+          );
+
+          const message =
+            checkoutError instanceof Error
+              ? checkoutError.message
+              : "Unable to start payment.";
+
+          toast.error("Checkout could not be started", {
+            description: message,
+          });
+
+          router.replace(dashboard);
+          router.refresh();
+          return;
+        }
+      }
 
       toast.success("Welcome back!", {
         description: `Successfully signed in as ${loggedInUser.role}.`,
@@ -157,21 +236,15 @@ export default function SignInPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f5f7f4] px-4 py-10">
-
       <div className="grid w-full max-w-6xl overflow-hidden rounded-3xl border border-[#e5ebe5] bg-white shadow-xl shadow-gray-200/50 lg:grid-cols-2">
 
-        {/* LEFT BRANDING SECTION */}
-
         <section className="relative hidden flex-col justify-between overflow-hidden bg-[#075c3d] p-12 text-white lg:flex">
-
           <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full border border-white/10" />
 
           <div className="absolute -bottom-32 -left-24 h-96 w-96 rounded-full border border-white/10" />
 
           <div className="relative z-10">
-
             <Link href="/" className="flex items-center gap-3">
-
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-[#075c3d]">
                 <GraduationCap size={29} />
               </div>
@@ -179,11 +252,9 @@ export default function SignInPage() {
               <span className="text-2xl font-extrabold tracking-tight">
                 MentorLagbe
               </span>
-
             </Link>
 
             <div className="mt-24">
-
               <p className="mb-4 text-xs font-bold uppercase tracking-[3px] text-emerald-200">
                 Welcome Back
               </p>
@@ -197,17 +268,11 @@ export default function SignInPage() {
                 opportunities, and make education more accessible
                 with MentorLagbe.
               </p>
-
             </div>
-
           </div>
 
-          {/* FEATURES */}
-
           <div className="relative z-10 mt-16 space-y-5">
-
             <div className="flex items-center gap-4">
-
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
                 <BookOpen size={21} />
               </div>
@@ -221,11 +286,9 @@ export default function SignInPage() {
                   Find the right learning opportunities.
                 </p>
               </div>
-
             </div>
 
             <div className="flex items-center gap-4">
-
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
                 <Users size={21} />
               </div>
@@ -239,28 +302,19 @@ export default function SignInPage() {
                   Connect with students and tutors.
                 </p>
               </div>
-
             </div>
 
             <p className="pt-8 text-xs text-emerald-200">
               © 2026 MentorLagbe. All rights reserved.
             </p>
-
           </div>
-
         </section>
 
-        {/* RIGHT LOGIN SECTION */}
-
         <section className="flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-14">
-
-          {/* MOBILE LOGO */}
-
           <Link
             href="/"
             className="mb-10 flex items-center gap-3 lg:hidden"
           >
-
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#075c3d] text-white">
               <GraduationCap size={25} />
             </div>
@@ -268,15 +322,10 @@ export default function SignInPage() {
             <span className="text-xl font-extrabold text-[#075c3d]">
               MentorLagbe
             </span>
-
           </Link>
 
           <div className="mx-auto w-full max-w-md">
-
-            {/* HEADING */}
-
             <div className="mb-9">
-
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#eaf4ed] text-[#075c3d]">
                 <ShieldCheck size={25} />
               </div>
@@ -289,10 +338,7 @@ export default function SignInPage() {
                 Sign in to your MentorLagbe account and continue
                 your learning journey.
               </p>
-
             </div>
-
-            {/* ERROR */}
 
             {error && (
               <div
@@ -303,17 +349,11 @@ export default function SignInPage() {
               </div>
             )}
 
-            {/* EMAIL AND PASSWORD FORM */}
-
             <form
               onSubmit={handleSubmit}
               className="space-y-6"
             >
-
-              {/* EMAIL */}
-
               <div>
-
                 <label
                   htmlFor="email"
                   className="mb-2 block text-sm font-semibold text-[#26372d]"
@@ -332,13 +372,9 @@ export default function SignInPage() {
                   disabled={loading}
                   className="h-13 w-full rounded-xl border border-[#dfe7df] bg-[#fafcf9] px-4 py-3 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[#075c3d] focus:ring-4 focus:ring-[#075c3d]/10 disabled:opacity-60"
                 />
-
               </div>
 
-              {/* PASSWORD */}
-
               <div>
-
                 <label
                   htmlFor="password"
                   className="mb-2 block text-sm font-semibold text-[#26372d]"
@@ -347,7 +383,6 @@ export default function SignInPage() {
                 </label>
 
                 <div className="relative">
-
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -376,19 +411,14 @@ export default function SignInPage() {
                       <Eye size={19} />
                     )}
                   </button>
-
                 </div>
-
               </div>
-
-              {/* SUBMIT BUTTON */}
 
               <button
                 type="submit"
                 disabled={loading}
                 className="flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-[#075c3d] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[#075c3d]/15 transition hover:bg-[#064b32] disabled:cursor-not-allowed disabled:opacity-70"
               >
-
                 {loading ? (
                   <>
                     <Loader2
@@ -403,15 +433,10 @@ export default function SignInPage() {
                     <ArrowRight size={18} />
                   </>
                 )}
-
               </button>
-
             </form>
 
-            {/* DIVIDER */}
-
             <div className="my-7 flex items-center gap-4">
-
               <div className="h-px flex-1 bg-[#e5e0d7]" />
 
               <span className="text-xs font-semibold tracking-wider text-gray-400">
@@ -419,17 +444,11 @@ export default function SignInPage() {
               </span>
 
               <div className="h-px flex-1 bg-[#e5e0d7]" />
-
             </div>
-
-            {/* GOOGLE SIGN IN */}
 
             <GoogleAuthButton text="signin_with" />
 
-            {/* REGISTER */}
-
             <div className="mt-8 text-center">
-
               <p className="text-sm text-gray-500">
                 Don&apos;t have an account?{" "}
 
@@ -440,28 +459,19 @@ export default function SignInPage() {
                   Create Account
                 </Link>
               </p>
-
             </div>
 
-            {/* FOOTER */}
-
             <div className="mt-10 border-t border-[#edf0ed] pt-6 text-center">
-
               <Link
                 href="/"
                 className="text-xs font-medium text-gray-400 transition hover:text-[#075c3d]"
               >
                 ← Back to Homepage
               </Link>
-
             </div>
-
           </div>
-
         </section>
-
       </div>
-
     </main>
   );
 }

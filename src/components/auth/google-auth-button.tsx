@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 type UserRole = "student" | "tutor";
+type UserPlan = "free" | "pro";
+
 
 type GoogleButtonText =
     | "signin_with"
@@ -15,6 +17,7 @@ type GoogleButtonText =
 
 interface GoogleAuthButtonProps {
     role?: UserRole;
+    plan?: UserPlan;
     text?: GoogleButtonText;
 }
 
@@ -29,6 +32,14 @@ interface GoogleButtonOptions {
     shape?: "rectangular" | "pill" | "circle" | "square";
     logo_alignment?: "left" | "center";
     width?: number;
+}
+
+interface AuthUser {
+    userId?: string;
+    name?: string;
+    email?: string;
+    role: string;
+    plan?: string;
 }
 
 declare global {
@@ -58,16 +69,37 @@ declare global {
 const GOOGLE_CLIENT_ID =
     process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
-const API_URL = (
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+const BASE_URL = (
+    process.env.NEXT_PUBLIC_API_URL ||
+    "http://localhost:5000"
 ).replace(/\/+$/, "");
 
-const GOOGLE_AUTH_URL = API_URL.endsWith("/api")
-    ? `${API_URL}/auth/google`
-    : `${API_URL}/api/auth/google`;
+const API_URL = BASE_URL.endsWith("/api")
+    ? BASE_URL
+    : `${BASE_URL}/api`;
+
+const GOOGLE_AUTH_URL = `${API_URL}/auth/google`;
+const CHECKOUT_URL = `${API_URL}/payments/checkout-session`;
+
+function getDashboardPath(role: string) {
+    switch (role.toLowerCase()) {
+        case "admin":
+            return "/dashboard/admin";
+
+        case "student":
+            return "/student/dashboard";
+
+        case "tutor":
+            return "/tutor/dashboard";
+
+        default:
+            return "/";
+    }
+}
 
 export default function GoogleAuthButton({
     role,
+    plan,
     text = "continue_with",
 }: GoogleAuthButtonProps) {
     const router = useRouter();
@@ -83,6 +115,7 @@ export default function GoogleAuthButton({
         }
 
         let mounted = true;
+
         let existingScript: HTMLScriptElement | null = null;
         let newScript: HTMLScriptElement | null = null;
 
@@ -97,7 +130,6 @@ export default function GoogleAuthButton({
 
             window.google.accounts.id.initialize({
                 client_id: GOOGLE_CLIENT_ID,
-
                 auto_select: false,
                 cancel_on_tap_outside: true,
 
@@ -106,6 +138,8 @@ export default function GoogleAuthButton({
                         toast.error("Google authentication failed.");
                         return;
                     }
+
+                    if (!mounted) return;
 
                     setLoading(true);
 
@@ -122,13 +156,14 @@ export default function GoogleAuthButton({
                         }
 
                         const apiResponse = await fetch(
-                            GOOGLE_AUTH_URL, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify(requestBody),
-                        }
+                            GOOGLE_AUTH_URL,
+                            {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify(requestBody),
+                            }
                         );
 
                         const result = await apiResponse.json();
@@ -140,7 +175,11 @@ export default function GoogleAuthButton({
                             );
                         }
 
-                        const { token, user } = result.data;
+                        const token: string | undefined =
+                            result.data?.token;
+
+                        const user: AuthUser | undefined =
+                            result.data?.user;
 
                         if (!token || !user) {
                             throw new Error(
@@ -148,9 +187,8 @@ export default function GoogleAuthButton({
                             );
                         }
 
-                        // Preserve existing MentorLagbe storage conventions.
-
                         localStorage.setItem("token", token);
+
                         localStorage.setItem(
                             "user",
                             JSON.stringify(user)
@@ -166,28 +204,125 @@ export default function GoogleAuthButton({
                             JSON.stringify(user)
                         );
 
+                        window.dispatchEvent(
+                            new Event("mentorlagbe-auth-change")
+                        );
+
+                        const dashboard = getDashboardPath(
+                            user.role
+                        );
+
+                        const params = new URLSearchParams(
+                            window.location.search
+                        );
+
+                        const requestedPlan =
+                            plan || params.get("plan");
+
+                        const requestedRole = params.get("role");
+
+                        const expectedRole =
+                            role ||
+                            (requestedRole === "student" ||
+                                requestedRole === "tutor"
+                                ? requestedRole
+                                : undefined);
+
+                        if (requestedPlan === "pro") {
+                            if (
+                                expectedRole &&
+                                expectedRole !== user.role.toLowerCase()
+                            ) {
+                                toast.error("Membership role mismatch", {
+                                    description:
+                                        "Your selected membership does not match your Google account type.",
+                                });
+
+                                router.replace(dashboard);
+                                router.refresh();
+                                return;
+                            }
+
+                            try {
+                                const checkoutResponse = await fetch(
+                                    CHECKOUT_URL,
+                                    {
+                                        method: "POST",
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                            Authorization: `Bearer ${token}`,
+                                        },
+                                        body: JSON.stringify({
+                                            plan: "pro",
+                                        }),
+                                    }
+                                );
+
+                                const checkoutResult =
+                                    await checkoutResponse.json();
+
+                                if (
+                                    !checkoutResponse.ok ||
+                                    !checkoutResult.success ||
+                                    !checkoutResult.data?.checkoutUrl
+                                ) {
+                                    throw new Error(
+                                        checkoutResult.message ||
+                                        "Unable to start Stripe checkout."
+                                    );
+                                }
+
+                                toast.success(
+                                    "Google authentication successful!",
+                                    {
+                                        description:
+                                            "Redirecting to secure Stripe checkout.",
+                                    }
+                                );
+
+                                window.location.assign(
+                                    checkoutResult.data.checkoutUrl
+                                );
+
+                                return;
+                            } catch (checkoutError) {
+                                console.error(
+                                    "Google Stripe checkout error:",
+                                    checkoutError
+                                );
+
+                                const message =
+                                    checkoutError instanceof Error
+                                        ? checkoutError.message
+                                        : "Unable to start payment.";
+
+                                toast.error(
+                                    "Checkout could not be started",
+                                    {
+                                        description: message,
+                                    }
+                                );
+
+                                router.replace(dashboard);
+                                router.refresh();
+                                return;
+                            }
+                        }
+
                         toast.success(
                             result.message ||
                             "Google sign-in successful!"
                         );
 
-                        // Redirect according to account role.
-
-
-                        const destination =
-                            user.role === "admin"
-                                ? "/dashboard/admin"
-                                : user.role === "student"
-                                    ? "/student/dashboard"
-                                    : user.role === "tutor"
-                                        ? "/tutor/dashboard"
-                                        : "/";
-
-
-                        router.replace(destination);
+                        router.replace(dashboard);
                         router.refresh();
 
                     } catch (error) {
+                        console.error(
+                            "Google authentication error:",
+                            error
+                        );
+
                         const message =
                             error instanceof Error
                                 ? error.message
@@ -196,7 +331,9 @@ export default function GoogleAuthButton({
                         toast.error(message);
 
                     } finally {
-                        setLoading(false);
+                        if (mounted) {
+                            setLoading(false);
+                        }
                     }
                 },
             });
@@ -222,17 +359,16 @@ export default function GoogleAuthButton({
 
         if (window.google) {
             initializeGoogle();
-
         } else if (existingScript) {
             existingScript.addEventListener(
                 "load",
                 initializeGoogle
             );
-
         } else {
             newScript = document.createElement("script");
 
             newScript.id = "google-identity-services";
+
             newScript.src =
                 "https://accounts.google.com/gsi/client";
 

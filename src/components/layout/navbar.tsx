@@ -15,13 +15,12 @@ import {
   UserRound,
   LogOut,
   ShieldCheck,
-  Mail,
 } from "lucide-react";
 
 const navigation = [
   { name: "Home", href: "/" },
   { name: "Browse Tuitions", href: "/tuitions" },
-  { name: "Pricing", href: "/pricing" },
+  { name: "Pricing", href: "/#pricing" },
   { name: "How It Works", href: "/#how-it-works" },
 ];
 
@@ -43,10 +42,10 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [activeHash, setActiveHash] = useState("");
 
   const accountMenuRef = useRef<HTMLDivElement>(null);
 
-  // Detect logged-in user
   useEffect(() => {
     const syncAuth = () => {
       const token =
@@ -87,7 +86,20 @@ export default function Navbar() {
     };
   }, [pathname]);
 
-  // Close dropdown when clicking outside
+  useEffect(() => {
+    const syncHash = () => {
+      setActiveHash(window.location.hash);
+    };
+
+    syncHash();
+
+    window.addEventListener("hashchange", syncHash);
+
+    return () => {
+      window.removeEventListener("hashchange", syncHash);
+    };
+  }, [pathname]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -115,14 +127,21 @@ export default function Navbar() {
   }, []);
 
   const isActive = (href: string) => {
-    if (href === "/") return pathname === "/";
-    if (href === "/tuitions") return pathname.startsWith("/tuitions");
-    if (href === "/pricing") return pathname.startsWith("/pricing");
+    if (href === "/") {
+      return pathname === "/" && activeHash === "";
+    }
+
+    if (href === "/tuitions") {
+      return pathname.startsWith("/tuitions");
+    }
+
+    if (href.startsWith("/#")) {
+      return pathname === "/" && activeHash === href.slice(1);
+    }
 
     return false;
   };
 
-  // Role-based dashboard routing
   const role = user?.role?.toLowerCase();
 
   const dashboardHref =
@@ -134,7 +153,6 @@ export default function Navbar() {
           ? "/student/dashboard"
           : "/";
 
-  // User information
   const displayName =
     user?.name?.trim() ||
     user?.email?.split("@")[0] ||
@@ -165,7 +183,6 @@ export default function Navbar() {
         ? "bg-emerald-50 text-emerald-800 ring-emerald-200"
         : "bg-blue-50 text-blue-800 ring-blue-200";
 
-  // Sign out
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -185,10 +202,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#E9E4DB]/80 bg-[#FBF8F3]/90 shadow-[0_4px_24px_rgba(20,50,35,0.035)] backdrop-blur-2xl transition-colors dark:border-[#26352E] dark:bg-[#0B1210]/95">
-
       <div className="mx-auto flex h-[82px] max-w-7xl items-center justify-between px-5 sm:px-8">
-
-        {/* LOGO */}
         <Link
           href="/"
           onClick={closeMobileMenu}
@@ -203,9 +217,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* DESKTOP NAVIGATION */}
         <nav className="hidden items-center gap-1 rounded-full border border-[#EAE6DE]/80 bg-white/50 p-1.5 lg:flex dark:border-[#26352E] dark:bg-[#151F1A]">
-
           {navigation.map((item) => {
             const active = isActive(item.href);
 
@@ -223,12 +235,9 @@ export default function Navbar() {
               </Link>
             );
           })}
-
         </nav>
 
-        {/* DESKTOP AUTHENTICATION */}
         <div className="hidden items-center gap-5 lg:flex">
-
           {!user ? (
             <>
               <Link
@@ -250,10 +259,7 @@ export default function Navbar() {
               </Link>
             </>
           ) : (
-
-            /* AUTHENTICATED USER */
             <div className="relative" ref={accountMenuRef}>
-
               <button
                 type="button"
                 onClick={() => setAccountMenuOpen(!accountMenuOpen)}
@@ -261,8 +267,6 @@ export default function Navbar() {
                 aria-haspopup="menu"
                 className="group flex items-center gap-2.5 rounded-2xl border border-[#E7E7DE] bg-white/80 py-2 pl-2 pr-3 shadow-[0_2px_10px_rgba(20,50,35,0.04)] transition-all duration-300 hover:border-[#B9D0C0] hover:shadow-md dark:border-[#35463D] dark:bg-[#17231D]"
               >
-
-                {/* AVATAR */}
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#EAF1EC] text-sm font-bold text-[#0F5132] ring-2 ring-[#0F5132]/10 dark:bg-[#263D30] dark:text-emerald-300">
                   {avatarUrl ? (
                     <img
@@ -275,7 +279,6 @@ export default function Navbar() {
                   )}
                 </div>
 
-                {/* USER NAME AND EMAIL */}
                 <div className="hidden min-w-0 text-left xl:block">
                   <p className="max-w-[145px] truncate text-[13px] font-bold text-[#1B2B21] dark:text-white">
                     {displayName}
@@ -286,7 +289,6 @@ export default function Navbar() {
                   </p>
                 </div>
 
-                {/* ROLE BADGE */}
                 <span
                   className={`hidden rounded-full px-2 py-1 text-[9px] font-extrabold tracking-wide ring-1 xl:inline-flex ${roleBadgeClass}`}
                 >
@@ -299,19 +301,14 @@ export default function Navbar() {
                     accountMenuOpen ? "rotate-180" : ""
                   }`}
                 />
-
               </button>
 
-              {/* PROFILE DROPDOWN */}
               {accountMenuOpen && (
                 <div
                   role="menu"
                   className="absolute right-0 top-full mt-3 w-[290px] origin-top-right overflow-hidden rounded-[20px] border border-[#E8E8DF] bg-white p-2 shadow-[0_16px_50px_rgba(20,50,35,0.13)] animate-in fade-in slide-in-from-top-2 duration-200 dark:border-[#35463D] dark:bg-[#142019]"
                 >
-
-                  {/* ACCOUNT HEADER */}
                   <div className="flex items-center gap-3 rounded-2xl bg-[#F5F8F4] p-4 dark:bg-[#1D2D23]">
-
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#DCEBE0] text-base font-bold text-[#0F5132] dark:bg-[#294634] dark:text-emerald-300">
                       {avatarUrl ? (
                         <img
@@ -339,12 +336,9 @@ export default function Navbar() {
                         {roleLabel} ACCOUNT
                       </span>
                     </div>
-
                   </div>
 
-                  {/* MENU LINKS */}
                   <div className="space-y-1 p-2">
-
                     <Link
                       href={dashboardHref}
                       onClick={() => setAccountMenuOpen(false)}
@@ -364,12 +358,10 @@ export default function Navbar() {
                       <UserRound size={18} />
                       Update Profile
                     </Link>
-
                   </div>
 
                   <div className="mx-2 border-t border-[#EEEFEA] dark:border-[#35463D]" />
 
-                  {/* SIGN OUT */}
                   <div className="p-2">
                     <button
                       type="button"
@@ -381,16 +373,12 @@ export default function Navbar() {
                       Sign Out
                     </button>
                   </div>
-
                 </div>
               )}
-
             </div>
           )}
-
         </div>
 
-        {/* MOBILE MENU BUTTON */}
         <button
           type="button"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -401,19 +389,14 @@ export default function Navbar() {
         >
           {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
-
       </div>
 
-      {/* MOBILE NAVIGATION */}
       {mobileMenuOpen && (
         <div
           id="mobile-navigation"
           className="border-t border-[#E9E4DB] bg-[#FBF8F3] px-5 pb-6 pt-4 shadow-xl lg:hidden dark:border-[#26352E] dark:bg-[#0B1210]"
         >
-
-          {/* NAV LINKS */}
           <nav className="flex flex-col gap-1">
-
             {navigation.map((item) => {
               const active = isActive(item.href);
 
@@ -432,16 +415,11 @@ export default function Navbar() {
                 </Link>
               );
             })}
-
           </nav>
 
           <div className="mt-5 border-t border-[#E9E4DB] pt-5 dark:border-[#26352E]">
-
             {!user ? (
-
-              /* MOBILE GUEST ACTIONS */
               <div className="flex flex-col gap-3">
-
                 <Link
                   href="/sign-in"
                   onClick={closeMobileMenu}
@@ -458,16 +436,10 @@ export default function Navbar() {
                   Get Started
                   <ArrowUpRight size={18} />
                 </Link>
-
               </div>
-
             ) : (
-
-              /* MOBILE AUTHENTICATED USER */
               <div className="space-y-4">
-
                 <div className="flex items-center gap-3 rounded-2xl border border-[#E7E7DE] bg-white p-4 dark:border-[#35463D] dark:bg-[#17231D]">
-
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#EAF1EC] font-bold text-[#0F5132] dark:bg-[#263D30] dark:text-emerald-300">
                     {avatarUrl ? (
                       <img
@@ -495,7 +467,6 @@ export default function Navbar() {
                       {roleLabel} ACCOUNT
                     </span>
                   </div>
-
                 </div>
 
                 <Link
@@ -525,15 +496,11 @@ export default function Navbar() {
                   <LogOut size={18} />
                   Sign Out
                 </button>
-
               </div>
             )}
-
           </div>
-
         </div>
       )}
-
     </header>
   );
 }

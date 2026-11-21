@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -24,6 +24,7 @@ const API_URL =
   "http://localhost:5000/api";
 
 type UserRole = "student" | "tutor";
+type Plan = "free" | "pro";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -33,10 +34,32 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("");
 
   const [role, setRole] = useState<UserRole>("student");
+  const [selectedPlan, setSelectedPlan] = useState<Plan>("free");
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    const requestedRole = params.get("role");
+    const requestedPlan = params.get("plan");
+
+    if (
+      requestedRole === "student" ||
+      requestedRole === "tutor"
+    ) {
+      setRole(requestedRole);
+    }
+
+    if (
+      requestedPlan === "pro" ||
+      requestedPlan === "free"
+    ) {
+      setSelectedPlan(requestedPlan);
+    }
+  }, []);
 
   async function handleSubmit(
     e: FormEvent<HTMLFormElement>
@@ -101,12 +124,9 @@ export default function SignUpPage() {
           "Your MentorLagbe account is ready. Please sign in to continue.",
       });
 
-      // The existing register endpoint creates the account
-      // but does not issue a JWT. Therefore, send the user
-      // to the normal sign-in page.
-
-      router.replace("/sign-in");
-
+      router.replace(
+        `/sign-in?role=${encodeURIComponent(role)}&plan=${selectedPlan}`
+      );
     } catch (err) {
       console.error("Registration error:", err);
 
@@ -120,7 +140,6 @@ export default function SignUpPage() {
       toast.error("Registration failed", {
         description: message,
       });
-
     } finally {
       setLoading(false);
     }
@@ -128,21 +147,15 @@ export default function SignUpPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f5f7f4] px-4 py-10">
-
       <div className="grid w-full max-w-6xl overflow-hidden rounded-3xl border border-[#e5ebe5] bg-white shadow-xl shadow-gray-200/50 lg:grid-cols-2">
 
-        {/* LEFT BRANDING SECTION */}
-
         <section className="relative hidden flex-col justify-between overflow-hidden bg-[#075c3d] p-12 text-white lg:flex">
-
           <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full border border-white/10" />
 
           <div className="absolute -bottom-32 -left-24 h-96 w-96 rounded-full border border-white/10" />
 
           <div className="relative z-10">
-
             <Link href="/" className="flex items-center gap-3">
-
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-[#075c3d]">
                 <GraduationCap size={29} />
               </div>
@@ -150,11 +163,9 @@ export default function SignUpPage() {
               <span className="text-2xl font-extrabold tracking-tight">
                 MentorLagbe
               </span>
-
             </Link>
 
             <div className="mt-24">
-
               <p className="mb-4 text-xs font-bold uppercase tracking-[3px] text-emerald-200">
                 Join Our Community
               </p>
@@ -168,17 +179,11 @@ export default function SignUpPage() {
                 helps you connect with the right people and
                 discover new opportunities.
               </p>
-
             </div>
-
           </div>
 
-          {/* FEATURES */}
-
           <div className="relative z-10 mt-16 space-y-5">
-
             <div className="flex items-center gap-4">
-
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
                 <BookOpen size={21} />
               </div>
@@ -192,11 +197,9 @@ export default function SignUpPage() {
                   Explore quality tuition opportunities.
                 </p>
               </div>
-
             </div>
 
             <div className="flex items-center gap-4">
-
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
                 <Users size={21} />
               </div>
@@ -210,28 +213,19 @@ export default function SignUpPage() {
                   Become part of a trusted learning community.
                 </p>
               </div>
-
             </div>
 
             <p className="pt-8 text-xs text-emerald-200">
               © 2026 MentorLagbe. All rights reserved.
             </p>
-
           </div>
-
         </section>
 
-        {/* RIGHT REGISTRATION SECTION */}
-
         <section className="flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-14">
-
-          {/* MOBILE LOGO */}
-
           <Link
             href="/"
             className="mb-8 flex items-center gap-3 lg:hidden"
           >
-
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#075c3d] text-white">
               <GraduationCap size={25} />
             </div>
@@ -239,15 +233,10 @@ export default function SignUpPage() {
             <span className="text-xl font-extrabold text-[#075c3d]">
               MentorLagbe
             </span>
-
           </Link>
 
           <div className="mx-auto w-full max-w-md">
-
-            {/* HEADING */}
-
             <div className="mb-7">
-
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#eaf4ed] text-[#075c3d]">
                 <ShieldCheck size={25} />
               </div>
@@ -260,10 +249,7 @@ export default function SignUpPage() {
                 Join MentorLagbe and start your learning or
                 teaching journey today.
               </p>
-
             </div>
-
-            {/* ERROR */}
 
             {error && (
               <div
@@ -274,35 +260,28 @@ export default function SignUpPage() {
               </div>
             )}
 
-            {/* ROLE SELECTION */}
-
             <div className="mb-6">
-
               <p className="mb-3 text-sm font-semibold text-[#26372d]">
                 I want to join as
               </p>
 
               <div className="grid grid-cols-2 gap-3">
-
-                {/* STUDENT */}
-
                 <button
                   type="button"
                   onClick={() => setRole("student")}
                   disabled={loading}
                   aria-pressed={role === "student"}
-                  className={`rounded-xl border-2 p-4 text-left transition ${
-                    role === "student"
+                  className={`rounded-xl border-2 p-4 text-left transition ${role === "student"
                       ? "border-[#075c3d] bg-[#eaf4ed]"
                       : "border-[#e5ebe5] bg-white hover:border-[#a9cbb6]"
-                  }`}
+                    }`}
                 >
-
-                  <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${
-                    role === "student"
-                      ? "bg-[#075c3d] text-white"
-                      : "bg-[#f1f5f1] text-[#63736d]"
-                  }`}>
+                  <div
+                    className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${role === "student"
+                        ? "bg-[#075c3d] text-white"
+                        : "bg-[#f1f5f1] text-[#63736d]"
+                      }`}
+                  >
                     <GraduationCap size={22} />
                   </div>
 
@@ -313,28 +292,24 @@ export default function SignUpPage() {
                   <p className="mt-1 text-xs text-gray-500">
                     Find qualified tutors
                   </p>
-
                 </button>
-
-                {/* TUTOR */}
 
                 <button
                   type="button"
                   onClick={() => setRole("tutor")}
                   disabled={loading}
                   aria-pressed={role === "tutor"}
-                  className={`rounded-xl border-2 p-4 text-left transition ${
-                    role === "tutor"
+                  className={`rounded-xl border-2 p-4 text-left transition ${role === "tutor"
                       ? "border-[#075c3d] bg-[#eaf4ed]"
                       : "border-[#e5ebe5] bg-white hover:border-[#a9cbb6]"
-                  }`}
+                    }`}
                 >
-
-                  <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${
-                    role === "tutor"
-                      ? "bg-[#075c3d] text-white"
-                      : "bg-[#f1f5f1] text-[#63736d]"
-                  }`}>
+                  <div
+                    className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${role === "tutor"
+                        ? "bg-[#075c3d] text-white"
+                        : "bg-[#f1f5f1] text-[#63736d]"
+                      }`}
+                  >
                     <UserRound size={22} />
                   </div>
 
@@ -345,24 +320,15 @@ export default function SignUpPage() {
                   <p className="mt-1 text-xs text-gray-500">
                     Teach and connect
                   </p>
-
                 </button>
-
               </div>
-
             </div>
-
-            {/* REGISTRATION FORM */}
 
             <form
               onSubmit={handleSubmit}
               className="space-y-5"
             >
-
-              {/* FULL NAME */}
-
               <div>
-
                 <label
                   htmlFor="name"
                   className="mb-2 block text-sm font-semibold text-[#26372d]"
@@ -382,13 +348,9 @@ export default function SignUpPage() {
                   disabled={loading}
                   className="h-13 w-full rounded-xl border border-[#dfe7df] bg-[#fafcf9] px-4 py-3 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[#075c3d] focus:ring-4 focus:ring-[#075c3d]/10 disabled:opacity-60"
                 />
-
               </div>
 
-              {/* EMAIL */}
-
               <div>
-
                 <label
                   htmlFor="email"
                   className="mb-2 block text-sm font-semibold text-[#26372d]"
@@ -407,13 +369,9 @@ export default function SignUpPage() {
                   disabled={loading}
                   className="h-13 w-full rounded-xl border border-[#dfe7df] bg-[#fafcf9] px-4 py-3 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-[#075c3d] focus:ring-4 focus:ring-[#075c3d]/10 disabled:opacity-60"
                 />
-
               </div>
 
-              {/* PASSWORD */}
-
               <div>
-
                 <label
                   htmlFor="password"
                   className="mb-2 block text-sm font-semibold text-[#26372d]"
@@ -422,7 +380,6 @@ export default function SignUpPage() {
                 </label>
 
                 <div className="relative">
-
                   <input
                     id="password"
                     type={showPassword ? "text" : "password"}
@@ -452,23 +409,18 @@ export default function SignUpPage() {
                       <Eye size={19} />
                     )}
                   </button>
-
                 </div>
 
                 <p className="mt-2 text-xs text-gray-400">
                   Password must contain at least 6 characters.
                 </p>
-
               </div>
-
-              {/* SUBMIT BUTTON */}
 
               <button
                 type="submit"
                 disabled={loading}
                 className="flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-[#075c3d] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[#075c3d]/15 transition hover:bg-[#064b32] disabled:cursor-not-allowed disabled:opacity-70"
               >
-
                 {loading ? (
                   <>
                     <Loader2
@@ -483,15 +435,10 @@ export default function SignUpPage() {
                     <ArrowRight size={18} />
                   </>
                 )}
-
               </button>
-
             </form>
 
-            {/* DIVIDER */}
-
             <div className="my-6 flex items-center gap-4">
-
               <div className="h-px flex-1 bg-[#e5e0d7]" />
 
               <span className="text-xs font-semibold tracking-wider text-gray-400">
@@ -499,52 +446,38 @@ export default function SignUpPage() {
               </span>
 
               <div className="h-px flex-1 bg-[#e5e0d7]" />
-
             </div>
-
-            {/* GOOGLE SIGN UP */}
 
             <GoogleAuthButton
               role={role}
+              plan={selectedPlan}
               text="signup_with"
             />
 
-            {/* SIGN IN LINK */}
-
             <div className="mt-8 text-center">
-
               <p className="text-sm text-gray-500">
                 Already have an account?{" "}
 
                 <Link
-                  href="/sign-in"
+                  href={`/sign-in?role=${role}&plan=${selectedPlan}`}
                   className="font-bold text-[#075c3d] transition hover:text-[#06452e]"
                 >
                   Sign In
                 </Link>
               </p>
-
             </div>
 
-            {/* FOOTER */}
-
             <div className="mt-8 border-t border-[#edf0ed] pt-6 text-center">
-
               <Link
                 href="/"
                 className="text-xs font-medium text-gray-400 transition hover:text-[#075c3d]"
               >
                 ← Back to Homepage
               </Link>
-
             </div>
-
           </div>
-
         </section>
-
       </div>
-
     </main>
   );
 }

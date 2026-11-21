@@ -569,13 +569,18 @@ export default function AdminStudentsPage() {
                         Applications
                     </button>
 
-                    <div className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-gray-400">
+
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setMobileOpen(false);
+                            router.push("/dashboard/admin/payments");
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-gray-500 transition hover:bg-[#f5f7f5] hover:text-[#075c3d]"
+                    >
                         <CreditCard size={19} />
                         <span>Payments</span>
-                        <span className="ml-auto text-[9px] font-semibold uppercase">
-                            Soon
-                        </span>
-                    </div>
+                    </button>
 
                     <div className="my-5 border-t border-[#edf0ed]" />
 

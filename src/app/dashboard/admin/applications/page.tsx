@@ -125,49 +125,48 @@ const navigation: {
   icon: LucideIcon;
   implemented: boolean;
 }[] = [
-  {
-    label: "Overview",
-    href: "/dashboard/admin",
-    icon: LayoutDashboard,
-    implemented: true,
-  },
-  {
-    label: "User Management",
-    href: "/dashboard/admin/users",
-    icon: Users,
-    implemented: true,
-  },
-  {
-    label: "Tutors",
-    href: "/dashboard/admin/tutors",
-    icon: GraduationCap,
-    implemented: true,
-  },
-  {
-    label: "Students",
-    href: "/dashboard/admin/students",
-    icon: UserRound,
-    implemented: true,
-  },
-  {
-    label: "Tuition Management",
-    href: "/dashboard/admin/tuitions",
-    icon: BookOpen,
-    implemented: true,
-  },
-  {
-    label: "Applications",
-    href: "/dashboard/admin/applications",
-    icon: ClipboardList,
-    implemented: true,
-  },
-  {
-    label: "Payments",
-    href: "",
-    icon: CreditCard,
-    implemented: false,
-  },
-];
+    {
+      label: "Overview",
+      href: "/dashboard/admin",
+      icon: LayoutDashboard,
+      implemented: true,
+    },
+    {
+      label: "User Management",
+      href: "/dashboard/admin/users",
+      icon: Users,
+      implemented: true,
+    },
+    {
+      label: "Tutors",
+      href: "/dashboard/admin/tutors",
+      icon: GraduationCap,
+      implemented: true,
+    },
+    {
+      label: "Students",
+      href: "/dashboard/admin/students",
+      icon: UserRound,
+      implemented: true,
+    },
+    {
+      label: "Tuition Management",
+      href: "/dashboard/admin/tuitions",
+      icon: BookOpen,
+      implemented: true,
+    },
+    {
+      label: "Applications",
+      href: "/dashboard/admin/applications",
+      icon: ClipboardList,
+      implemented: true,
+    },
+    {
+      label: "Payments",
+      href: "/dashboard/admin/payments",
+      icon: CreditCard,
+      implemented: true,
+    },];
 
 // ==========================================
 // AUTHENTICATION HELPERS
@@ -518,10 +517,9 @@ export default function AdminApplicationsPage() {
           transition-all duration-300
           w-[280px]
           ${collapsed ? "lg:w-[88px]" : "lg:w-[280px]"}
-          ${
-            mobileOpen
-              ? "translate-x-0"
-              : "-translate-x-full lg:translate-x-0"
+          ${mobileOpen
+            ? "translate-x-0"
+            : "-translate-x-full lg:translate-x-0"
           }
         `}
       >
@@ -636,15 +634,13 @@ export default function AdminApplicationsPage() {
                 className={`
                   flex w-full items-center gap-3 rounded-xl px-3 py-3
                   text-left text-sm font-medium transition
-                  ${
-                    active
-                      ? "bg-[#eaf4ed] font-semibold text-[#075c3d]"
-                      : "text-gray-500 hover:bg-[#f5f7f5] hover:text-[#075c3d]"
+                  ${active
+                    ? "bg-[#eaf4ed] font-semibold text-[#075c3d]"
+                    : "text-gray-500 hover:bg-[#f5f7f5] hover:text-[#075c3d]"
                   }
-                  ${
-                    item.implemented
-                      ? "cursor-pointer"
-                      : "cursor-not-allowed opacity-60"
+                  ${item.implemented
+                    ? "cursor-pointer"
+                    : "cursor-not-allowed opacity-60"
                   }
                 `}
               >
@@ -1572,9 +1568,8 @@ function StatusBadge({ status }: { status: string }) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-bold capitalize ${
-        styles[normalizedStatus] || styles.pending
-      }`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-bold capitalize ${styles[normalizedStatus] || styles.pending
+        }`}
     >
       {icons[normalizedStatus] || icons.pending}
       {normalizedStatus}

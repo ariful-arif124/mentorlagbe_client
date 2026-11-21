@@ -24,9 +24,15 @@ import {
     Home,
 } from "lucide-react";
 
-const API_URL =
-    process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:5000/api";
+const API_URL = (() => {
+    const baseUrl = (
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+    ).replace(/\/+$/, "");
+
+    return baseUrl.endsWith("/api")
+        ? baseUrl
+        : `${baseUrl}/api`;
+})();
 
 type AdminUser = {
     name?: string;
@@ -141,14 +147,13 @@ export default function AdminDashboard() {
                     return;
                 }
 
-                if (!response.ok) {
+                if (!response.ok || !result.success) {
                     throw new Error(
                         result.message || "Failed to load dashboard"
                     );
                 }
 
                 setStats(result.data);
-
             } catch (err) {
                 console.error("Admin dashboard error:", err);
 
@@ -174,6 +179,26 @@ export default function AdminDashboard() {
         router.replace("/sign-in");
     }
 
+    function handleNavigation(label: string) {
+        setMobileOpen(false);
+
+        if (label === "Overview") {
+            router.push("/dashboard/admin");
+        } else if (label === "User Management") {
+            router.push("/dashboard/admin/users");
+        } else if (label === "Tutors") {
+            router.push("/dashboard/admin/tutors");
+        } else if (label === "Students") {
+            router.push("/dashboard/admin/students");
+        } else if (label === "Tuition Management") {
+            router.push("/dashboard/admin/tuitions");
+        } else if (label === "Applications") {
+            router.push("/dashboard/admin/applications");
+        } else if (label === "Payments") {
+            router.push("/dashboard/admin/payments");
+        }
+    }
+
     const initials = (user?.name || "Admin")
         .split(" ")
         .map((word) => word[0])
@@ -197,7 +222,6 @@ export default function AdminDashboard() {
     return (
         <div className="min-h-screen bg-[#f7f8f6] text-[#17221d]">
 
-            {/* Mobile overlay */}
             {mobileOpen && (
                 <button
                     aria-label="Close navigation"
@@ -206,19 +230,17 @@ export default function AdminDashboard() {
                 />
             )}
 
-            {/* SIDEBAR */}
             <aside
                 className={`
-          fixed inset-y-0 left-0 z-50 flex flex-col
-          border-r border-[#e9ede9] bg-white
-          transition-all duration-300
-          ${collapsed ? "lg:w-[85px]" : "lg:w-[265px]"}
-          w-[265px]
-          ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-        `}
+                    fixed inset-y-0 left-0 z-50 flex flex-col
+                    border-r border-[#e9ede9] bg-white
+                    transition-all duration-300
+                    ${collapsed ? "lg:w-[85px]" : "lg:w-[265px]"}
+                    w-[265px]
+                    ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+                `}
             >
 
-                {/* Logo */}
                 <div className="flex h-[76px] items-center justify-between border-b border-[#edf0ed] px-5">
 
                     <div className="flex items-center gap-3">
@@ -231,6 +253,7 @@ export default function AdminDashboard() {
                                 <h2 className="text-lg font-extrabold tracking-tight">
                                     Mentor<span className="text-[#075c3d]">Lagbe</span>
                                 </h2>
+
                                 <p className="text-[10px] font-semibold uppercase tracking-[2px] text-gray-400">
                                     Administration
                                 </p>
@@ -246,7 +269,6 @@ export default function AdminDashboard() {
                     </button>
                 </div>
 
-                {/* Admin profile */}
                 <div className="border-b border-[#edf0ed] p-4">
                     <div className="flex items-center gap-3 rounded-xl bg-[#f6f8f6] p-3">
 
@@ -259,9 +281,11 @@ export default function AdminDashboard() {
                                 <p className="truncate text-sm font-bold">
                                     {user?.name || "Administrator"}
                                 </p>
+
                                 <p className="truncate text-xs text-gray-500">
                                     {user?.email}
                                 </p>
+
                                 <span className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold uppercase text-[#075c3d]">
                                     <ShieldCheck size={12} />
                                     Administrator
@@ -271,7 +295,6 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-                {/* Navigation */}
                 <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-6">
 
                     {!collapsed && (
@@ -279,7 +302,6 @@ export default function AdminDashboard() {
                             Main Menu
                         </p>
                     )}
-
 
                     {navigation.map((item) => {
                         const Icon = item.icon;
@@ -289,8 +311,9 @@ export default function AdminDashboard() {
                             item.label === "User Management" ||
                             item.label === "Tutors" ||
                             item.label === "Students" ||
-                            item.label === "Tuition Management"||
-                            item.label === "Applications";
+                            item.label === "Tuition Management" ||
+                            item.label === "Applications" ||
+                            item.label === "Payments";
 
                         return (
                             <button
@@ -298,34 +321,19 @@ export default function AdminDashboard() {
                                 type="button"
                                 title={collapsed ? item.label : ""}
                                 disabled={!isImplemented}
-                                onClick={() => {
-                                    if (item.label === "Overview") {
-                                        router.push("/dashboard/admin");
-                                    } else if (item.label === "User Management") {
-                                        router.push("/dashboard/admin/users");
-                                    } else if (item.label === "Tutors") {
-                                        router.push("/dashboard/admin/tutors");
-                                    } else if (item.label === "Students") {
-                                        router.push("/dashboard/admin/students");
-                                    } else if (item.label === "Tuition Management") {
-                                        router.push("/dashboard/admin/tuitions");
-                                    }
-                                    else if (item.label === "Applications") {
-                                        router.push("/dashboard/admin/applications");
-                                    }
-                                }}
+                                onClick={() => handleNavigation(item.label)}
                                 className={`
-        flex w-full items-center gap-3 rounded-xl px-3 py-3
-        text-left text-sm font-medium transition
-        ${item.active
+                                    flex w-full items-center gap-3 rounded-xl px-3 py-3
+                                    text-left text-sm font-medium transition
+                                    ${item.active
                                         ? "bg-[#eaf4ed] text-[#075c3d]"
                                         : "text-gray-500 hover:bg-[#f5f7f5] hover:text-[#075c3d]"
                                     }
-        ${isImplemented
+                                    ${isImplemented
                                         ? "cursor-pointer"
                                         : "cursor-not-allowed opacity-70"
                                     }
-      `}
+                                `}
                             >
                                 <Icon size={19} />
 
@@ -360,7 +368,6 @@ export default function AdminDashboard() {
 
                 </nav>
 
-                {/* Bottom sidebar */}
                 <div className="border-t border-[#edf0ed] p-4">
 
                     {!collapsed && (
@@ -389,15 +396,13 @@ export default function AdminDashboard() {
                 </div>
             </aside>
 
-            {/* MAIN CONTENT */}
             <div
                 className={`
-          min-h-screen transition-all duration-300
-          ${collapsed ? "lg:pl-[85px]" : "lg:pl-[265px]"}
-        `}
+                    min-h-screen transition-all duration-300
+                    ${collapsed ? "lg:pl-[85px]" : "lg:pl-[265px]"}
+                `}
             >
 
-                {/* TOP HEADER */}
                 <header className="sticky top-0 z-30 flex h-[76px] items-center justify-between border-b border-[#e9ede9] bg-white/95 px-5 backdrop-blur md:px-8">
 
                     <div className="flex items-center gap-4">
@@ -421,6 +426,7 @@ export default function AdminDashboard() {
                             <p className="text-xs text-gray-400">
                                 MentorLagbe / Administration
                             </p>
+
                             <h1 className="text-lg font-bold">
                                 Dashboard Overview
                             </h1>
@@ -446,15 +452,14 @@ export default function AdminDashboard() {
                     </div>
                 </header>
 
-                {/* DASHBOARD BODY */}
                 <main className="mx-auto max-w-[1600px] px-5 py-8 md:px-8 lg:px-10">
 
-                    {/* Welcome */}
                     <section className="mb-9 flex flex-col justify-between gap-5 md:flex-row md:items-center">
 
                         <div>
                             <div className="mb-3 flex items-center gap-2">
                                 <span className="h-2 w-2 rounded-full bg-emerald-500" />
+
                                 <p className="text-xs font-bold uppercase tracking-[2px] text-[#075c3d]">
                                     Administration
                                 </p>
@@ -465,7 +470,8 @@ export default function AdminDashboard() {
                             </h2>
 
                             <p className="mt-3 text-sm text-gray-500 md:text-base">
-                                Here&apos;s what&apos;s happening across your MentorLagbe platform.                            </p>
+                                Here&apos;s what&apos;s happening across your MentorLagbe platform.
+                            </p>
                         </div>
 
                         <button
@@ -485,13 +491,13 @@ export default function AdminDashboard() {
                         </div>
                     )}
 
-                    {/* USER STATISTICS */}
                     <section className="mb-9">
 
                         <div className="mb-5">
                             <h3 className="text-lg font-bold">
                                 User Overview
                             </h3>
+
                             <p className="mt-1 text-xs text-gray-500">
                                 Registered users across the platform
                             </p>
@@ -534,13 +540,13 @@ export default function AdminDashboard() {
                         </div>
                     </section>
 
-                    {/* TUITION STATISTICS */}
                     <section className="mb-9">
 
                         <div className="mb-5">
                             <h3 className="text-lg font-bold">
                                 Tuition Overview
                             </h3>
+
                             <p className="mt-1 text-xs text-gray-500">
                                 Tuition listings and approval statistics
                             </p>
@@ -583,16 +589,15 @@ export default function AdminDashboard() {
                         </div>
                     </section>
 
-                    {/* LOWER SECTION */}
                     <section className="grid gap-6 xl:grid-cols-3">
 
-                        {/* Platform summary */}
                         <div className="rounded-2xl border border-[#e8ece8] bg-white p-6 shadow-sm xl:col-span-2">
 
                             <div className="mb-7">
                                 <h3 className="text-lg font-bold">
                                     Platform Summary
                                 </h3>
+
                                 <p className="mt-1 text-xs text-gray-500">
                                     Current platform distribution
                                 </p>
@@ -632,9 +637,11 @@ export default function AdminDashboard() {
                                             Total Applications
                                         </span>
                                     </div>
+
                                     <p className="mt-3 text-3xl font-bold">
                                         {stats.totalApplications}
                                     </p>
+
                                     <p className="mt-1 text-xs text-gray-500">
                                         Student applications received
                                     </p>
@@ -647,6 +654,7 @@ export default function AdminDashboard() {
                                             Tuition Approval Rate
                                         </span>
                                     </div>
+
                                     <p className="mt-3 text-3xl font-bold">
                                         {stats.tuitions.total > 0
                                             ? Math.round(
@@ -655,6 +663,7 @@ export default function AdminDashboard() {
                                             )
                                             : 0}%
                                     </p>
+
                                     <p className="mt-1 text-xs text-gray-500">
                                         Approved listings / total listings
                                     </p>
@@ -663,7 +672,6 @@ export default function AdminDashboard() {
                             </div>
                         </div>
 
-                        {/* Admin activity */}
                         <div className="rounded-2xl border border-[#e8ece8] bg-white p-6 shadow-sm">
 
                             <h3 className="text-lg font-bold">
@@ -680,10 +688,12 @@ export default function AdminDashboard() {
                                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#eaf4ed] text-[#075c3d]">
                                         <ShieldCheck size={20} />
                                     </div>
+
                                     <div>
                                         <p className="text-sm font-semibold">
                                             Admin Authentication
                                         </p>
+
                                         <p className="text-xs text-emerald-600">
                                             Verified
                                         </p>
@@ -694,10 +704,12 @@ export default function AdminDashboard() {
                                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
                                         <Users size={20} />
                                     </div>
+
                                     <div>
                                         <p className="text-sm font-semibold">
                                             User Database
                                         </p>
+
                                         <p className="text-xs text-gray-500">
                                             {stats.users.total} accounts registered
                                         </p>
@@ -708,10 +720,12 @@ export default function AdminDashboard() {
                                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
                                         <BookOpen size={20} />
                                     </div>
+
                                     <div>
                                         <p className="text-sm font-semibold">
                                             Tuition Moderation
                                         </p>
+
                                         <p className="text-xs text-gray-500">
                                             {stats.tuitions.pending} awaiting approval
                                         </p>
@@ -724,9 +738,11 @@ export default function AdminDashboard() {
                                 <p className="text-xs font-semibold uppercase tracking-wider text-emerald-200">
                                     MentorLagbe
                                 </p>
+
                                 <h4 className="mt-2 text-xl font-bold">
                                     Admin Control Center
                                 </h4>
+
                                 <p className="mt-2 text-xs leading-5 text-emerald-100">
                                     Monitor users, manage tuition listings, and maintain platform quality.
                                 </p>
@@ -735,12 +751,12 @@ export default function AdminDashboard() {
 
                     </section>
 
-                    {/* Footer */}
                     <footer className="mt-12 border-t border-[#e7ebe7] py-6">
                         <div className="flex flex-col justify-between gap-3 text-center sm:flex-row sm:text-left">
                             <p className="text-xs text-gray-400">
                                 © 2026 MentorLagbe. All rights reserved.
                             </p>
+
                             <p className="text-xs text-gray-400">
                                 Administration Dashboard
                             </p>
@@ -823,8 +839,10 @@ function DistributionBar({
                 <span className="text-sm font-semibold">
                     {label}
                 </span>
+
                 <span className="text-sm font-bold">
                     {value}
+
                     <span className="ml-2 text-xs font-normal text-gray-400">
                         {percentage.toFixed(0)}%
                     </span>

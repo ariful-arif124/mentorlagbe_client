@@ -629,7 +629,8 @@ export default function AdminTuitionManagement() {
               item.label === "Tutors" ||
               item.label === "Students" ||
               item.label === "Tuition Management" ||
-              item.label === "Applications";
+              item.label === "Applications" ||
+              item.label === "Payments";
 
             const active = item.label === "Tuition Management";
 
@@ -653,6 +654,9 @@ export default function AdminTuitionManagement() {
                   }
                   else if (item.label === "Applications") {
                     router.push("/dashboard/admin/applications");
+                  }
+                  else if (item.label === "Payments") {
+                    router.push("/dashboard/admin/payments");
                   }
 
                   setMobileOpen(false);

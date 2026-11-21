@@ -523,10 +523,9 @@ export default function AdminPaymentsPage() {
                                 className={`
                                     flex w-full items-center gap-3 rounded-xl px-3 py-3
                                     text-left text-sm font-medium transition
-                                    ${
-                                        active
-                                            ? "bg-[#eaf4ed] text-[#075c3d]"
-                                            : "text-gray-500 hover:bg-[#f5f7f5] hover:text-[#075c3d]"
+                                    ${active
+                                        ? "bg-[#eaf4ed] text-[#075c3d]"
+                                        : "text-gray-500 hover:bg-[#f5f7f5] hover:text-[#075c3d]"
                                     }
                                 `}
                             >
@@ -545,10 +544,18 @@ export default function AdminPaymentsPage() {
 
                     <div className="my-5 border-t border-[#edf0ed]" />
 
-                    <div className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-gray-500">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setMobileOpen(false);
+                            router.push("/dashboard/admin/settings");
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-gray-500 transition hover:bg-[#f5f7f5] hover:text-[#075c3d]"
+                    >
                         <Settings size={19} />
-                        {!collapsed && <span>Settings</span>}
-                    </div>
+                        <span>Settings</span>
+                    </button>
+                    
                 </nav>
 
                 <div className="border-t border-[#edf0ed] p-4">
@@ -993,11 +1000,10 @@ export default function AdminPaymentsPage() {
                                                     </td>
 
                                                     <td className="px-5 py-4">
-                                                        <p className={`text-xs font-bold ${
-                                                            payment.refundStatus?.toLowerCase() === "refunded"
-                                                                ? "text-emerald-700"
-                                                                : "text-gray-500"
-                                                        }`}>
+                                                        <p className={`text-xs font-bold ${payment.refundStatus?.toLowerCase() === "refunded"
+                                                            ? "text-emerald-700"
+                                                            : "text-gray-500"
+                                                            }`}>
                                                             {getRefundMeta(payment.refundStatus)}
                                                         </p>
 

@@ -669,16 +669,19 @@ export default function AdminApplicationsPage() {
 
           <div className="my-5 border-t border-[#edf0ed]" />
 
-          <div
-            className={`
-              flex items-center gap-3 rounded-xl px-3 py-3
-              text-sm text-gray-400
-              ${collapsed ? "justify-center" : ""}
-            `}
+          <button
+            type="button"
+            title={collapsed ? "Settings" : ""}
+            onClick={() => {
+              router.push("/dashboard/admin/settings");
+              setMobileOpen(false);
+            }}
+            className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-gray-500 transition hover:bg-[#f5f7f5] hover:text-[#075c3d] ${collapsed ? "justify-center" : ""
+              }`}
           >
             <Settings size={19} />
-            {!collapsed && "Settings"}
-          </div>
+            {!collapsed && <span>Settings</span>}
+          </button>
 
         </nav>
 

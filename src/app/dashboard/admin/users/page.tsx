@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   GraduationCap,
   LayoutDashboard,
@@ -96,8 +97,6 @@ export default function AdminUsersPage() {
   const [updatingId, setUpdatingId] = useState("");
 
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  // Authentication
   useEffect(() => {
     const storedToken =
       localStorage.getItem("token") ||
@@ -126,8 +125,6 @@ export default function AdminUsersPage() {
       router.replace("/sign-in");
     }
   }, [router]);
-
-  // Load dashboard statistics
   useEffect(() => {
     if (!token) return;
 
@@ -157,8 +154,6 @@ export default function AdminUsersPage() {
 
     loadStats();
   }, [token]);
-
-  // Load users
   useEffect(() => {
     if (!token) return;
 
@@ -246,8 +241,6 @@ export default function AdminUsersPage() {
     refreshKey,
     router,
   ]);
-
-  // View individual user
   async function viewUser(userId: string) {
     setDetailsLoading(true);
     setSelectedUser(null);
@@ -282,8 +275,6 @@ export default function AdminUsersPage() {
       setDetailsLoading(false);
     }
   }
-
-  // Activate / Deactivate user
   async function toggleUserStatus(user: User) {
     const nextStatus = !user.isActive;
 
@@ -383,18 +374,14 @@ export default function AdminUsersPage() {
 
   return (
     <div className="min-h-screen bg-[#f7f8f6] text-[#17221d]">
-
-      {/* Mobile overlay */}
-      {mobileOpen && (
+{mobileOpen && (
         <button
           aria-label="Close sidebar"
           onClick={() => setMobileOpen(false)}
           className="fixed inset-0 z-40 bg-black/30 lg:hidden"
         />
       )}
-
-      {/* SIDEBAR */}
-      <aside
+<aside
         className={`
           fixed inset-y-0 left-0 z-50 flex w-[265px] flex-col
           border-r border-[#e9ede9] bg-white
@@ -427,9 +414,7 @@ export default function AdminUsersPage() {
             <X size={21} />
           </button>
         </div>
-
-        {/* Admin profile */}
-        <div className="border-b border-[#edf0ed] p-4">
+<div className="border-b border-[#edf0ed] p-4">
           <div className="flex items-center gap-3 rounded-xl bg-[#f6f8f6] p-3">
 
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#dceee3] font-bold text-[#075c3d]">
@@ -451,9 +436,7 @@ export default function AdminUsersPage() {
 
           </div>
         </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-6">
+<nav className="flex-1 space-y-1 overflow-y-auto px-3 py-6">
 
           <p className="mb-4 px-3 text-[10px] font-bold uppercase tracking-[2px] text-gray-400">
             Main Menu
@@ -475,7 +458,6 @@ export default function AdminUsersPage() {
             User Management
           </button>
 
-          {/* Tutors */}
           <button
             type="button"
             onClick={() => {
@@ -487,24 +469,7 @@ export default function AdminUsersPage() {
             <GraduationCap size={19} />
             Tutors
           </button>
-
-          {/* Coming Soon Sections */}
-
-          {/* Tutors */}
-          <button
-            type="button"
-            onClick={() => {
-              setMobileOpen(false);
-              router.push("/dashboard/admin/tutors");
-            }}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-gray-500 transition hover:bg-[#f5f7f5] hover:text-[#075c3d]"
-          >
-            <GraduationCap size={19} />
-            Tutors
-          </button>
-
-          {/* Students */}
-          <button
+<button
             type="button"
             onClick={() => {
               setMobileOpen(false);
@@ -515,9 +480,7 @@ export default function AdminUsersPage() {
             <UserRound size={19} />
             Students
           </button>
-
-          {/* Tuition Management */}
-          <button
+<button
             type="button"
             onClick={() => {
               setMobileOpen(false);
@@ -528,10 +491,7 @@ export default function AdminUsersPage() {
             <BookOpen size={19} />
             Tuition Management
           </button>
-
-          {/* APPLICATIONS */}
-
-          <button
+<button
             type="button"
             onClick={() => {
               setMobileOpen(false);
@@ -543,30 +503,29 @@ export default function AdminUsersPage() {
             Applications
           </button>
 
+          <Link
+            href="/dashboard/admin/payments"
+            onClick={() => setMobileOpen(false)}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-gray-500 transition hover:bg-[#f5f7f5] hover:text-[#075c3d]"
+          >
+            <CreditCard size={19} />
+            <span>Payments</span>
+          </Link>
 
           <button
             type="button"
             onClick={() => {
               setMobileOpen(false);
-              router.push("/dashboard/admin/payments");
+              router.push("/dashboard/admin/settings");
             }}
             className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-gray-500 transition hover:bg-[#f5f7f5] hover:text-[#075c3d]"
           >
-            <CreditCard size={19} />
-            <span>Payments</span>
+            <Settings size={19} />
+            <span>Settings</span>
           </button>
 
-          <div className="my-5 border-t border-[#edf0ed]" />
-
-          <div className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-gray-500">
-            <Settings size={19} />
-            Settings
-          </div>
-
         </nav>
-
-        {/* Logout */}
-        <div className="border-t border-[#edf0ed] p-4">
+<div className="border-t border-[#edf0ed] p-4">
 
           <div className="mb-4 rounded-xl bg-[#f2f7f3] p-4">
             <div className="flex items-center gap-2 text-[#075c3d]">
@@ -591,12 +550,8 @@ export default function AdminUsersPage() {
 
         </div>
       </aside>
-
-      {/* MAIN CONTENT */}
-      <div className="min-h-screen lg:pl-[265px]">
-
-        {/* HEADER */}
-        <header className="sticky top-0 z-30 flex h-[76px] items-center justify-between border-b border-[#e9ede9] bg-white/95 px-5 backdrop-blur md:px-8">
+<div className="min-h-screen lg:pl-[265px]">
+<header className="sticky top-0 z-30 flex h-[76px] items-center justify-between border-b border-[#e9ede9] bg-white/95 px-5 backdrop-blur md:px-8">
 
           <div className="flex items-center gap-4">
 
@@ -638,12 +593,8 @@ export default function AdminUsersPage() {
 
           </div>
         </header>
-
-        {/* PAGE BODY */}
-        <main className="mx-auto max-w-[1600px] px-5 py-8 md:px-8 lg:px-10">
-
-          {/* PAGE INTRO */}
-          <section className="mb-8">
+<main className="mx-auto max-w-[1600px] px-5 py-8 md:px-8 lg:px-10">
+<section className="mb-8">
 
             <div className="mb-3 flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
@@ -661,9 +612,7 @@ export default function AdminUsersPage() {
             </p>
 
           </section>
-
-          {/* ERROR */}
-          {error && (
+{error && (
             <div className="mb-6 flex items-center justify-between rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
               <span>{error}</span>
               <button onClick={() => setError("")}>
@@ -671,9 +620,7 @@ export default function AdminUsersPage() {
               </button>
             </div>
           )}
-
-          {/* SUCCESS */}
-          {notice && (
+{notice && (
             <div className="mb-6 flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
               <span>{notice}</span>
               <button onClick={() => setNotice("")}>
@@ -681,9 +628,7 @@ export default function AdminUsersPage() {
               </button>
             </div>
           )}
-
-          {/* STATISTICS */}
-          <section className="mb-9 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+<section className="mb-9 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
 
             <StatCard
               title="Total Users"
@@ -714,12 +659,8 @@ export default function AdminUsersPage() {
             />
 
           </section>
-
-          {/* USER TABLE CONTAINER */}
-          <section className="overflow-hidden rounded-2xl border border-[#e8ece8] bg-white shadow-sm">
-
-            {/* TABLE HEADER */}
-            <div className="border-b border-[#edf0ed] p-5 md:p-6">
+<section className="overflow-hidden rounded-2xl border border-[#e8ece8] bg-white shadow-sm">
+<div className="border-b border-[#edf0ed] p-5 md:p-6">
 
               <div className="mb-5 flex flex-col justify-between gap-3 md:flex-row md:items-center">
 
@@ -745,9 +686,7 @@ export default function AdminUsersPage() {
                 </button>
 
               </div>
-
-              {/* SEARCH AND FILTERS */}
-              <div className="grid gap-3 md:grid-cols-3">
+<div className="grid gap-3 md:grid-cols-3">
 
                 <div className="relative md:col-span-1">
                   <Search
@@ -796,9 +735,7 @@ export default function AdminUsersPage() {
 
               </div>
             </div>
-
-            {/* TABLE */}
-            <div className="overflow-x-auto">
+<div className="overflow-x-auto">
 
               <table className="w-full min-w-[850px] text-left">
 
@@ -864,9 +801,7 @@ export default function AdminUsersPage() {
                           key={user.userId}
                           className="transition hover:bg-[#fafcfa]"
                         >
-
-                          {/* USER */}
-                          <td className="px-6 py-5">
+<td className="px-6 py-5">
                             <div className="flex items-center gap-3">
 
                               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#eaf4ed] text-sm font-bold text-[#075c3d]">
@@ -894,9 +829,7 @@ export default function AdminUsersPage() {
 
                             </div>
                           </td>
-
-                          {/* ROLE */}
-                          <td className="px-6 py-5">
+<td className="px-6 py-5">
                             <span
                               className={`rounded-full px-3 py-1.5 text-[11px] font-bold capitalize ${roleStyle[user.role] ||
                                 "bg-gray-100 text-gray-600"
@@ -905,16 +838,12 @@ export default function AdminUsersPage() {
                               {user.role}
                             </span>
                           </td>
-
-                          {/* PLAN */}
-                          <td className="px-6 py-5">
+<td className="px-6 py-5">
                             <span className="text-sm font-medium capitalize text-gray-600">
                               {user.plan || "free"}
                             </span>
                           </td>
-
-                          {/* STATUS */}
-                          <td className="px-6 py-5">
+<td className="px-6 py-5">
                             <span
                               className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold ${user.isActive
                                 ? "bg-emerald-50 text-emerald-700"
@@ -930,14 +859,10 @@ export default function AdminUsersPage() {
                               {user.isActive ? "Active" : "Inactive"}
                             </span>
                           </td>
-
-                          {/* JOINED */}
-                          <td className="px-6 py-5 text-sm text-gray-500">
+<td className="px-6 py-5 text-sm text-gray-500">
                             {formatDate(user.createdAt)}
                           </td>
-
-                          {/* ACTIONS */}
-                          <td className="px-6 py-5">
+<td className="px-6 py-5">
                             <div className="flex items-center justify-end gap-2">
 
                               <button
@@ -987,9 +912,7 @@ export default function AdminUsersPage() {
               </table>
 
             </div>
-
-            {/* PAGINATION */}
-            <div className="flex flex-col justify-between gap-4 border-t border-[#edf0ed] px-6 py-5 sm:flex-row sm:items-center">
+<div className="flex flex-col justify-between gap-4 border-t border-[#edf0ed] px-6 py-5 sm:flex-row sm:items-center">
 
               <p className="text-xs text-gray-500">
                 Showing{" "}
@@ -1035,9 +958,7 @@ export default function AdminUsersPage() {
             </div>
 
           </section>
-
-          {/* FOOTER */}
-          <footer className="mt-10 border-t border-[#e7ebe7] py-6">
+<footer className="mt-10 border-t border-[#e7ebe7] py-6">
             <div className="flex flex-col justify-between gap-3 text-center sm:flex-row sm:text-left">
               <p className="text-xs text-gray-400">
                 © 2026 MentorLagbe. All rights reserved.
@@ -1050,9 +971,7 @@ export default function AdminUsersPage() {
 
         </main>
       </div>
-
-      {/* USER DETAILS MODAL */}
-      {(detailsLoading || selectedUser) && (
+{(detailsLoading || selectedUser) && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4"
           onClick={() => {
@@ -1194,8 +1113,6 @@ export default function AdminUsersPage() {
     </div>
   );
 }
-
-// Statistics card
 function StatCard({
   title,
   value,
@@ -1234,8 +1151,6 @@ function StatCard({
     </div>
   );
 }
-
-// User details row
 function DetailRow({
   icon,
   label,

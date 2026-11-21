@@ -645,10 +645,17 @@ export default function AdminTutorsPage() {
 
                     <div className="my-5 border-t border-[#edf0ed]" />
 
-                    <div className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-gray-400">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setMobileOpen(false);
+                            router.push("/dashboard/admin/settings");
+                        }}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-gray-500 transition hover:bg-[#f5f7f5] hover:text-[#075c3d]"
+                    >
                         <Settings size={19} />
-                        Settings
-                    </div>
+                        <span>Settings</span>
+                    </button>
                 </nav>
 
                 {/* LOGOUT */}

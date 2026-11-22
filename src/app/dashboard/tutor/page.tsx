@@ -3,7 +3,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-
 import {
   GraduationCap,
   LayoutDashboard,
@@ -18,7 +17,6 @@ import {
   LogOut,
   ArrowUpRight,
   CheckCircle2,
-  Clock3,
   BarChart3,
   RefreshCw,
   ShieldCheck,
@@ -29,9 +27,9 @@ import {
 
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
-).replace(/\/+$/, "");
+).trim().replace(/\/+$/, "");
 
-const API_URL = API_BASE_URL.endsWith("/api")
+const API_URL = /\/api$/i.test(API_BASE_URL)
   ? API_BASE_URL
   : `${API_BASE_URL}/api`;
 
@@ -98,10 +96,6 @@ export default function TutorDashboard() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // ------------------------------------------
-  // LOAD TUTOR DASHBOARD
-  // ------------------------------------------
-
   const loadDashboard = useCallback(
     async (isRefresh = false) => {
       if (isRefresh) {
@@ -158,26 +152,44 @@ export default function TutorDashboard() {
           }
         );
 
+        if (response.status === 401) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          localStorage.removeItem("mentorlagbe_token");
+          localStorage.removeItem("mentorlagbe_user");
+
+          router.replace("/sign-in");
+          return;
+        }
+
         const contentType = response.headers.get("content-type") || "";
+        const responseText = await response.text();
 
-        const result = contentType.includes("application/json")
-          ? await response.json()
-          : { message: await response.text() };
+        let result: {
+          success?: boolean;
+          message?: string;
+          data?: Partial<TutorStats>;
+        } | null = null;
 
-        if (!response.ok) {
-          if (response.status === 401) {
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
-            localStorage.removeItem("mentorlagbe_token");
-            localStorage.removeItem("mentorlagbe_user");
-
-            router.replace("/sign-in");
-            return;
+        if (contentType.toLowerCase().includes("json")) {
+          try {
+            result = responseText ? JSON.parse(responseText) : null;
+          } catch {
+            throw new Error("The tutor stats API returned invalid JSON.");
           }
+        } else {
+          const responsePreview = responseText.trim().slice(0, 200);
 
           throw new Error(
-            result?.message ||
-            "Failed to load tutor dashboard"
+            `Tutor stats API returned ${response.status} with a non-JSON response${
+              responsePreview ? `: ${responsePreview}` : "."
+            }`
+          );
+        }
+
+        if (!response.ok || result?.success === false) {
+          throw new Error(
+            result?.message || "Failed to load tutor dashboard"
           );
         }
 
@@ -224,10 +236,6 @@ export default function TutorDashboard() {
     void loadDashboard();
   }, [loadDashboard]);
 
-  // ------------------------------------------
-  // LOGOUT
-  // ------------------------------------------
-
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -236,10 +244,6 @@ export default function TutorDashboard() {
 
     router.replace("/sign-in");
   };
-
-  // ------------------------------------------
-  // DERIVED DATA
-  // ------------------------------------------
 
   const isPro = stats.plan.toLowerCase() === "pro";
 
@@ -271,10 +275,6 @@ export default function TutorDashboard() {
     stats.plan.charAt(0).toUpperCase() +
     stats.plan.slice(1);
 
-  // ------------------------------------------
-  // LOADING SCREEN
-  // ------------------------------------------
-
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#f5f8f5] p-6">
@@ -298,15 +298,8 @@ export default function TutorDashboard() {
     );
   }
 
-  // ------------------------------------------
-  // MAIN DASHBOARD
-  // ------------------------------------------
-
   return (
     <div className="min-h-screen bg-[#f5f8f5] text-[#172820]">
-
-      {/* MOBILE OVERLAY */}
-
       {mobileMenuOpen && (
         <button
           aria-label="Close sidebar"
@@ -314,10 +307,6 @@ export default function TutorDashboard() {
           className="fixed inset-0 z-40 bg-[#10271d]/40 backdrop-blur-sm lg:hidden"
         />
       )}
-
-      {/* ================================== */}
-      {/* SIDEBAR */}
-      {/* ================================== */}
 
       <aside
         className={`
@@ -333,11 +322,7 @@ export default function TutorDashboard() {
           }
         `}
       >
-
-        {/* LOGO */}
-
         <div className="flex h-[86px] shrink-0 items-center justify-between border-b border-[#edf1ed] px-5">
-
           <button
             onClick={() => router.push("/")}
             className="flex items-center gap-3"
@@ -368,10 +353,7 @@ export default function TutorDashboard() {
           </button>
         </div>
 
-        {/* PROFILE */}
-
         <div className="border-b border-[#edf1ed] p-4">
-
           <div
             className={`
               flex items-center gap-3 rounded-2xl
@@ -407,10 +389,7 @@ export default function TutorDashboard() {
           </div>
         </div>
 
-        {/* NAVIGATION */}
-
         <nav className="flex-1 space-y-2 overflow-y-auto px-3 py-6">
-
           {!collapsed && (
             <p className="mb-4 px-3 text-[10px] font-extrabold uppercase tracking-[2.5px] text-[#a0afa6]">
               Workspace
@@ -498,7 +477,8 @@ export default function TutorDashboard() {
           </button>
 
           <button
-            onClick={() => router.push("/?role=tutor#pricing")} title={collapsed ? "Upgrade Plan" : ""}
+            onClick={() => router.push("/?role=tutor#pricing")}
+            title={collapsed ? "Upgrade Plan" : ""}
             className={`
               flex w-full items-center gap-3 rounded-xl
               px-3 py-3.5 text-sm font-semibold
@@ -511,16 +491,11 @@ export default function TutorDashboard() {
 
             {!collapsed && <span>Upgrade Plan</span>}
           </button>
-
         </nav>
 
-        {/* SIDEBAR BOTTOM */}
-
         <div className="shrink-0 border-t border-[#edf1ed] p-4">
-
           {!collapsed && (
             <div className="mb-4 rounded-2xl bg-[#eff6f1] p-4">
-
               <div className="mb-3 flex items-center gap-2 text-[#075c3b]">
                 <ShieldCheck size={19} />
 
@@ -569,13 +544,8 @@ export default function TutorDashboard() {
 
             {!collapsed && <span>Collapse Sidebar</span>}
           </button>
-
         </div>
       </aside>
-
-      {/* ================================== */}
-      {/* MAIN CONTENT */}
-      {/* ================================== */}
 
       <div
         className={`
@@ -583,15 +553,8 @@ export default function TutorDashboard() {
           ${collapsed ? "lg:pl-[88px]" : "lg:pl-[272px]"}
         `}
       >
-
-        {/* TOP HEADER */}
-
         <header className="sticky top-0 z-30 flex h-[86px] items-center justify-between border-b border-[#e7ede8] bg-white/95 px-5 backdrop-blur-xl md:px-8">
-
           <div className="flex items-center gap-4">
-
-            {/* MOBILE MENU */}
-
             <button
               onClick={() => setMobileMenuOpen(true)}
               className="rounded-xl p-2 text-[#53675c] transition hover:bg-[#f0f5f1] lg:hidden"
@@ -599,8 +562,6 @@ export default function TutorDashboard() {
             >
               <Menu size={23} />
             </button>
-
-            {/* DESKTOP COLLAPSE */}
 
             <button
               onClick={() => setCollapsed(!collapsed)}
@@ -622,7 +583,6 @@ export default function TutorDashboard() {
           </div>
 
           <div className="flex items-center gap-3">
-
             <button
               onClick={() => router.push("/")}
               className="hidden items-center gap-2 rounded-full border border-[#e2eae3] px-4 py-2.5 text-xs font-bold text-[#596c60] transition hover:border-[#075c3b] hover:text-[#075c3b] sm:flex"
@@ -654,18 +614,8 @@ export default function TutorDashboard() {
           </div>
         </header>
 
-        {/* ================================== */}
-        {/* PAGE CONTENT */}
-        {/* ================================== */}
-
         <main className="mx-auto max-w-[1700px] px-5 py-7 md:px-8 md:py-9 lg:px-10">
-
-          {/* WELCOME HERO */}
-
           <section className="relative mb-9 overflow-hidden rounded-[28px] bg-[#0a4932] p-7 text-white shadow-xl shadow-[#0a4932]/10 md:p-10 xl:p-12">
-
-            {/* Decorative circles */}
-
             <div className="pointer-events-none absolute -right-20 -top-40 h-[420px] w-[420px] rounded-full border border-white/10" />
 
             <div className="pointer-events-none absolute -right-5 -top-28 h-[300px] w-[300px] rounded-full border border-white/10" />
@@ -673,11 +623,7 @@ export default function TutorDashboard() {
             <div className="pointer-events-none absolute bottom-[-150px] left-[40%] h-[300px] w-[300px] rounded-full bg-[#1c7851]/20 blur-3xl" />
 
             <div className="relative z-10 flex flex-col justify-between gap-10 xl:flex-row xl:items-center">
-
-              {/* Welcome Text */}
-
               <div className="max-w-2xl">
-
                 <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2">
                   <Sparkles size={15} className="text-[#f6cc70]" />
 
@@ -703,7 +649,6 @@ export default function TutorDashboard() {
                 </p>
 
                 <div className="mt-8 flex flex-wrap gap-3">
-
                   <button
                     onClick={() =>
                       router.push("/dashboard/tutor/post-tuition")
@@ -724,14 +669,10 @@ export default function TutorDashboard() {
                     <Users size={18} />
                     View Applicants
                   </button>
-
                 </div>
               </div>
 
-              {/* Membership Card */}
-
               <div className="w-full max-w-[310px] shrink-0 rounded-[24px] border border-white/15 bg-white/10 p-6 backdrop-blur-md">
-
                 <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15 text-[#c6e8d3]">
                   <GraduationCap size={35} />
                 </div>
@@ -757,11 +698,8 @@ export default function TutorDashboard() {
                   <ArrowUpRight size={16} />
                 </button>
               </div>
-
             </div>
           </section>
-
-          {/* ERROR MESSAGE */}
 
           {error && (
             <div className="mb-7 flex flex-col justify-between gap-3 rounded-2xl border border-red-200 bg-red-50 p-5 sm:flex-row sm:items-center">
@@ -778,12 +716,8 @@ export default function TutorDashboard() {
             </div>
           )}
 
-          {/* STATISTICS */}
-
           <section className="mb-9">
-
             <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-
               <div>
                 <p className="mb-2 text-[10px] font-extrabold uppercase tracking-[2.5px] text-[#087448]">
                   Your Overview
@@ -813,11 +747,7 @@ export default function TutorDashboard() {
             </div>
 
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-
-              {/* TOTAL TUITION */}
-
               <div className="group rounded-[22px] border border-[#e3ebe4] bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#075c3b]/5">
-
                 <div className="mb-6 flex items-center justify-between">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e8f3ec] text-[#087448]">
                     <BookOpen size={23} />
@@ -841,10 +771,7 @@ export default function TutorDashboard() {
                 </p>
               </div>
 
-              {/* APPROVED TUITION */}
-
               <div className="group rounded-[22px] border border-[#e3ebe4] bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#075c3b]/5">
-
                 <div className="mb-6 flex items-center justify-between">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e8f3ec] text-[#087448]">
                     <CheckCircle2 size={23} />
@@ -868,10 +795,7 @@ export default function TutorDashboard() {
                 </p>
               </div>
 
-              {/* APPLICANTS */}
-
               <div className="group rounded-[22px] border border-[#e3ebe4] bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#075c3b]/5">
-
                 <div className="mb-6 flex items-center justify-between">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#edf0ff] text-[#6276c9]">
                     <Users size={23} />
@@ -895,10 +819,7 @@ export default function TutorDashboard() {
                 </p>
               </div>
 
-              {/* MEMBERSHIP */}
-
               <div className="group rounded-[22px] border border-[#e3ebe4] bg-white p-6 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#075c3b]/5">
-
                 <div className="mb-6 flex items-center justify-between">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fff4df] text-[#c28a25]">
                     <Wallet size={23} />
@@ -923,22 +844,12 @@ export default function TutorDashboard() {
                     : "Up to 2 tuition posts"}
                 </p>
               </div>
-
             </div>
           </section>
 
-          {/* ================================== */}
-          {/* POSTING CAPACITY + ACCOUNT */}
-          {/* ================================== */}
-
           <section className="mb-9 grid gap-6 xl:grid-cols-3">
-
-            {/* POSTING CAPACITY */}
-
             <div className="rounded-[24px] border border-[#e3ebe4] bg-white p-7 shadow-sm xl:col-span-2">
-
               <div className="mb-7 flex items-center justify-between">
-
                 <div>
                   <p className="text-[10px] font-extrabold uppercase tracking-[2px] text-[#087448]">
                     Membership Usage
@@ -959,11 +870,8 @@ export default function TutorDashboard() {
               </div>
 
               {isPro ? (
-
                 <div className="rounded-2xl border border-[#d8eddf] bg-[#f0f8f2] p-6">
-
                   <div className="flex items-start gap-4">
-
                     <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-[#087448] shadow-sm">
                       <CheckCircle2 size={25} />
                     </div>
@@ -979,18 +887,15 @@ export default function TutorDashboard() {
                         Keep growing your teaching opportunities.
                       </p>
                     </div>
-
                   </div>
                 </div>
-
               ) : (
-
                 <>
                   <div className="mb-5 flex items-end justify-between">
-
                     <div>
                       <h4 className="text-4xl font-extrabold tracking-tight text-[#172820]">
                         {postsUsed}
+
                         <span className="ml-1 text-lg font-semibold text-[#9aa79e]">
                           / {freePlanLimit}
                         </span>
@@ -1010,8 +915,6 @@ export default function TutorDashboard() {
                     </span>
                   </div>
 
-                  {/* Progress Bar */}
-
                   <div className="h-3 overflow-hidden rounded-full bg-[#edf2ed]">
                     <div
                       className="h-full rounded-full bg-gradient-to-r from-[#075c3b] to-[#36a36f] transition-all duration-700"
@@ -1022,7 +925,6 @@ export default function TutorDashboard() {
                   </div>
 
                   <div className="mt-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-
                     <p className="text-xs text-[#94a198]">
                       Free plan allows up to 2 tuition posts.
                     </p>
@@ -1037,13 +939,9 @@ export default function TutorDashboard() {
                   </div>
                 </>
               )}
-
             </div>
 
-            {/* ACCOUNT SUMMARY */}
-
             <div className="rounded-[24px] border border-[#e3ebe4] bg-white p-7 shadow-sm">
-
               <div className="mb-7 flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#e9f3ec] text-[#087448]">
                   <UserRound size={22} />
@@ -1061,7 +959,6 @@ export default function TutorDashboard() {
               </div>
 
               <div className="space-y-5">
-
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-sm text-[#8b9990]">
                     Account Role
@@ -1108,7 +1005,6 @@ export default function TutorDashboard() {
                     Active
                   </span>
                 </div>
-
               </div>
 
               <button
@@ -1118,17 +1014,10 @@ export default function TutorDashboard() {
                 Manage Profile
                 <ArrowUpRight size={16} />
               </button>
-
             </div>
-
           </section>
 
-          {/* ================================== */}
-          {/* QUICK ACTIONS */}
-          {/* ================================== */}
-
           <section className="mb-10">
-
             <div className="mb-6">
               <p className="text-[10px] font-extrabold uppercase tracking-[2px] text-[#087448]">
                 Get Things Done
@@ -1144,16 +1033,12 @@ export default function TutorDashboard() {
             </div>
 
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-
-              {/* POST TUITION */}
-
               <button
                 onClick={() =>
                   router.push("/dashboard/tutor/post-tuition")
                 }
                 className="group rounded-[22px] border border-[#e3ebe4] bg-white p-6 text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#b8d9c2] hover:shadow-xl hover:shadow-[#075c3b]/5"
               >
-
                 <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e9f3ec] text-[#087448] transition group-hover:bg-[#075c3b] group-hover:text-white">
                   <Plus size={26} />
                 </div>
@@ -1176,15 +1061,12 @@ export default function TutorDashboard() {
                 </span>
               </button>
 
-              {/* MY TUITIONS */}
-
               <button
                 onClick={() =>
                   router.push("/dashboard/tutor/my-tuitions")
                 }
                 className="group rounded-[22px] border border-[#e3ebe4] bg-white p-6 text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#c5d6ef] hover:shadow-xl hover:shadow-blue-900/5"
               >
-
                 <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#edf2fc] text-[#5579bf] transition group-hover:bg-[#5579bf] group-hover:text-white">
                   <BookOpen size={26} />
                 </div>
@@ -1207,15 +1089,12 @@ export default function TutorDashboard() {
                 </span>
               </button>
 
-              {/* APPLICANTS */}
-
               <button
                 onClick={() =>
                   router.push("/dashboard/tutor/applicants")
                 }
                 className="group rounded-[22px] border border-[#e3ebe4] bg-white p-6 text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:border-[#e2d0f2] hover:shadow-xl hover:shadow-purple-900/5"
               >
-
                 <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#f3edfb] text-[#9264bd] transition group-hover:bg-[#9264bd] group-hover:text-white">
                   <Users size={26} />
                 </div>
@@ -1237,18 +1116,11 @@ export default function TutorDashboard() {
                   />
                 </span>
               </button>
-
             </div>
           </section>
 
-          {/* ================================== */}
-          {/* FOOTER */}
-          {/* ================================== */}
-
           <footer className="mt-12 border-t border-[#e3ebe4] py-7">
-
             <div className="flex flex-col items-center justify-between gap-3 text-center sm:flex-row sm:text-left">
-
               <div className="flex items-center gap-2">
                 <GraduationCap
                   size={19}
@@ -1263,10 +1135,8 @@ export default function TutorDashboard() {
               <p className="text-xs text-[#9aa79e]">
                 Empowering education through meaningful connections.
               </p>
-
             </div>
           </footer>
-
         </main>
       </div>
     </div>

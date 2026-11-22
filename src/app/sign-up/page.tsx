@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import GoogleAuthButton from "@/components/auth/google-auth-button";
-
 import {
   Eye,
   EyeOff,
@@ -19,12 +18,30 @@ import {
   UserRound,
 } from "lucide-react";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "http://localhost:5000/api";
+const API_URL = (() => {
+  const baseUrl = (
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+  )
+    .trim()
+    .replace(/\/+$/, "");
+
+  return baseUrl.endsWith("/api") ? baseUrl : `${baseUrl}/api`;
+})();
 
 type UserRole = "student" | "tutor";
 type Plan = "free" | "pro";
+
+type RegisterResponse = {
+  success?: boolean;
+  message?: string;
+  data?: {
+    userId?: string;
+    name?: string;
+    email?: string;
+    role?: string;
+    plan?: string;
+  };
+};
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -61,9 +78,7 @@ export default function SignUpPage() {
     }
   }, []);
 
-  async function handleSubmit(
-    e: FormEvent<HTMLFormElement>
-  ) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
 
@@ -95,27 +110,49 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${API_URL}/auth/register`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: normalizedName,
-            email: normalizedEmail,
-            password,
-            role,
-          }),
-        }
-      );
+      const endpoint = `${API_URL}/auth/register`;
 
-      const result = await response.json();
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          name: normalizedName,
+          email: normalizedEmail,
+          password,
+          role,
+        }),
+      });
+
+      const responseText = await response.text();
+
+      let result: RegisterResponse;
+
+      try {
+        result = JSON.parse(responseText) as RegisterResponse;
+      } catch {
+        console.error("Invalid API response:", {
+          endpoint,
+          status: response.status,
+          response: responseText.slice(0, 500),
+        });
+
+        if (response.status === 404) {
+          throw new Error(
+            `Registration endpoint not found. Check the backend route: POST ${endpoint}`
+          );
+        }
+
+        throw new Error(
+          `The backend returned an invalid response instead of JSON (HTTP ${response.status}). Check your deployed backend and API URL.`
+        );
+      }
 
       if (!response.ok || !result.success) {
         throw new Error(
-          result.message || "Registration failed."
+          result.message || `Registration failed (HTTP ${response.status}).`
         );
       }
 
@@ -148,7 +185,6 @@ export default function SignUpPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f5f7f4] px-4 py-10">
       <div className="grid w-full max-w-6xl overflow-hidden rounded-3xl border border-[#e5ebe5] bg-white shadow-xl shadow-gray-200/50 lg:grid-cols-2">
-
         <section className="relative hidden flex-col justify-between overflow-hidden bg-[#075c3d] p-12 text-white lg:flex">
           <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full border border-white/10" />
 
@@ -271,16 +307,18 @@ export default function SignUpPage() {
                   onClick={() => setRole("student")}
                   disabled={loading}
                   aria-pressed={role === "student"}
-                  className={`rounded-xl border-2 p-4 text-left transition ${role === "student"
+                  className={`rounded-xl border-2 p-4 text-left transition ${
+                    role === "student"
                       ? "border-[#075c3d] bg-[#eaf4ed]"
                       : "border-[#e5ebe5] bg-white hover:border-[#a9cbb6]"
-                    }`}
+                  }`}
                 >
                   <div
-                    className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${role === "student"
+                    className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${
+                      role === "student"
                         ? "bg-[#075c3d] text-white"
                         : "bg-[#f1f5f1] text-[#63736d]"
-                      }`}
+                    }`}
                   >
                     <GraduationCap size={22} />
                   </div>
@@ -299,16 +337,18 @@ export default function SignUpPage() {
                   onClick={() => setRole("tutor")}
                   disabled={loading}
                   aria-pressed={role === "tutor"}
-                  className={`rounded-xl border-2 p-4 text-left transition ${role === "tutor"
+                  className={`rounded-xl border-2 p-4 text-left transition ${
+                    role === "tutor"
                       ? "border-[#075c3d] bg-[#eaf4ed]"
                       : "border-[#e5ebe5] bg-white hover:border-[#a9cbb6]"
-                    }`}
+                  }`}
                 >
                   <div
-                    className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${role === "tutor"
+                    className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${
+                      role === "tutor"
                         ? "bg-[#075c3d] text-white"
                         : "bg-[#f1f5f1] text-[#63736d]"
-                      }`}
+                    }`}
                   >
                     <UserRound size={22} />
                   </div>
@@ -324,10 +364,7 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            <form
-              onSubmit={handleSubmit}
-              className="space-y-5"
-            >
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label
                   htmlFor="name"
@@ -423,10 +460,7 @@ export default function SignUpPage() {
               >
                 {loading ? (
                   <>
-                    <Loader2
-                      size={19}
-                      className="animate-spin"
-                    />
+                    <Loader2 size={19} className="animate-spin" />
                     Creating Account...
                   </>
                 ) : (
@@ -457,7 +491,6 @@ export default function SignUpPage() {
             <div className="mt-8 text-center">
               <p className="text-sm text-gray-500">
                 Already have an account?{" "}
-
                 <Link
                   href={`/sign-in?role=${role}&plan=${selectedPlan}`}
                   className="font-bold text-[#075c3d] transition hover:text-[#06452e]"

@@ -19,7 +19,7 @@ import {
 const quickLinks = [
     { name: "Home", href: "/" },
     { name: "Browse Tuitions", href: "/tuitions" },
-    { name: "Pricing & Pro Plans", href: "/pricing" },
+    { name: "Pricing & Pro Plans", href: "/#pricing" },
     { name: "How It Works", href: "/#how-it-works" },
 ];
 

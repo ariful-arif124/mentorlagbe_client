@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -89,19 +89,22 @@ const pricingData = {
 export function PricingSection() {
   const [activeRole, setActiveRole] = useState<Role>("student");
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const role = params.get("role");
+
+    if (role === "student" || role === "tutor") {
+      setActiveRole(role);
+    }
+  }, []);
+
   const currentData = pricingData[activeRole];
   const RoleIcon = currentData.icon;
 
   return (
-    <section
-      id="pricing"
-      className="bg-background py-20 md:py-24"
-    >
+    <section id="pricing" className="bg-background py-20 md:py-24">
       <div className="site-container">
-
-        {/* Heading */}
         <div className="mx-auto max-w-2xl space-y-4 text-center">
-
           <p className="section-eyebrow">
             Simple & Transparent Pricing
           </p>
@@ -117,17 +120,15 @@ export function PricingSection() {
           </p>
         </div>
 
-        {/* Student / Tutor Toggle */}
         <div className="mt-10 flex justify-center">
-
           <div className="flex items-center gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm">
-
             <button
               onClick={() => setActiveRole("student")}
-              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all ${activeRole === "student"
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "text-muted-foreground hover:bg-secondary"
-                }`}
+              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all ${
+                activeRole === "student"
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : "text-muted-foreground hover:bg-secondary"
+              }`}
             >
               <GraduationCap size={18} />
               Student
@@ -135,19 +136,18 @@ export function PricingSection() {
 
             <button
               onClick={() => setActiveRole("tutor")}
-              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all ${activeRole === "tutor"
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "text-muted-foreground hover:bg-secondary"
-                }`}
+              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all ${
+                activeRole === "tutor"
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : "text-muted-foreground hover:bg-secondary"
+              }`}
             >
               <Users size={18} />
               Tutor
             </button>
-
           </div>
         </div>
 
-        {/* Description */}
         <motion.div
           key={activeRole}
           initial={{ opacity: 0, y: 10 }}
@@ -159,7 +159,6 @@ export function PricingSection() {
           {currentData.description}
         </motion.div>
 
-        {/* Pricing Cards */}
         <motion.div
           key={`plans-${activeRole}`}
           initial={{ opacity: 0, y: 15 }}
@@ -170,13 +169,12 @@ export function PricingSection() {
           {currentData.plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative flex h-full flex-col rounded-3xl border p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${plan.popular
-                ? "border-primary bg-card ring-1 ring-primary/20"
-                : "border-border bg-card"
-                }`}
+              className={`relative flex h-full flex-col rounded-3xl border p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${
+                plan.popular
+                  ? "border-primary bg-card ring-1 ring-primary/20"
+                  : "border-border bg-card"
+              }`}
             >
-
-              {/* Most Popular Ribbon */}
               {plan.popular && (
                 <div className="absolute -top-4 right-6 flex items-center gap-1 rounded-full bg-accent px-4 py-2 text-xs font-bold text-accent-foreground shadow-md">
                   <Sparkles size={14} />
@@ -184,14 +182,13 @@ export function PricingSection() {
                 </div>
               )}
 
-              {/* Plan Heading */}
               <div className="flex items-center gap-3">
-
                 <div
-                  className={`flex size-12 items-center justify-center rounded-xl ${plan.popular
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-primary"
-                    }`}
+                  className={`flex size-12 items-center justify-center rounded-xl ${
+                    plan.popular
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary text-primary"
+                  }`}
                 >
                   {plan.popular ? (
                     <Crown size={23} />
@@ -211,11 +208,8 @@ export function PricingSection() {
                 </div>
               </div>
 
-              {/* Price */}
               <div className="mt-8 border-b border-border pb-7">
-
                 <div className="flex items-baseline gap-2">
-
                   <span className="text-5xl font-bold tracking-tight text-primary">
                     {plan.price}
                   </span>
@@ -225,20 +219,15 @@ export function PricingSection() {
                       Pro membership
                     </span>
                   )}
-
                 </div>
-
               </div>
 
-              {/* Features */}
               <div className="mt-7 flex-1">
-
                 <p className="mb-5 text-sm font-bold text-foreground">
                   What&apos;s included:
                 </p>
 
                 <ul className="space-y-4">
-
                   {plan.features.map((feature) => (
                     <li
                       key={feature}
@@ -251,17 +240,16 @@ export function PricingSection() {
                       {feature}
                     </li>
                   ))}
-
                 </ul>
               </div>
 
-              {/* CTA */}
               <Link
                 href={plan.href}
-                className={`mt-9 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-4 text-sm font-bold transition-all ${plan.popular
-                  ? "bg-primary text-primary-foreground hover:opacity-90"
-                  : "border border-border bg-secondary text-foreground hover:border-primary hover:text-primary"
-                  }`}
+                className={`mt-9 flex w-full items-center justify-center gap-2 rounded-xl px-5 py-4 text-sm font-bold transition-all ${
+                  plan.popular
+                    ? "bg-primary text-primary-foreground hover:opacity-90"
+                    : "border border-border bg-secondary text-foreground hover:border-primary hover:text-primary"
+                }`}
               >
                 {plan.button}
                 <ArrowRight size={17} />
@@ -273,16 +261,13 @@ export function PricingSection() {
                   Upgrade to unlock Pro benefits
                 </p>
               )}
-
             </div>
           ))}
         </motion.div>
 
-        {/* Bottom Note */}
         <p className="mt-10 text-center text-sm text-muted-foreground">
           Start for free and upgrade whenever you are ready.
         </p>
-
       </div>
     </section>
   );

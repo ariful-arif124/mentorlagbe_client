@@ -90,7 +90,7 @@ function getDashboardPath(role: string) {
             return "/student/dashboard";
 
         case "tutor":
-            return "/tutor/dashboard";
+            return "/dashboard/tutor";
 
         default:
             return "/";

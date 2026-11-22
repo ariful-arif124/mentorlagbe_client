@@ -36,7 +36,7 @@ function getDashboardPath(role: string) {
       return "/dashboard/admin";
 
     case "tutor":
-      return "/tutor/dashboard";
+      return "/dashboard/tutor";
 
     case "student":
       return "/student/dashboard";
@@ -173,7 +173,7 @@ export default function SignInPage() {
           ) {
             throw new Error(
               checkoutResult.message ||
-                "Unable to start Stripe checkout."
+              "Unable to start Stripe checkout."
             );
           }
 

@@ -1,6 +1,5 @@
 
 "use client";
-
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -35,7 +34,7 @@ import {
 } from "lucide-react";
 
 const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
 )
   .trim()
   .replace(/\/+$/, "")
@@ -247,6 +246,11 @@ export default function StudentDashboard() {
   const [page, setPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
   const [filter, setFilter] = useState<FilterStatus>("all");
+
+  const [activeSection, setActiveSection] = useState<
+    "overview" | "applications" | "payments"
+  >("overview");
+
   const [cancelLoading, setCancelLoading] = useState<string | null>(null);
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -557,6 +561,8 @@ export default function StudentDashboard() {
     setMobileSidebarOpen(false);
 
     if (destination === "applications") {
+      setActiveSection("applications");
+
       document.getElementById("applications")?.scrollIntoView({
         behavior: "smooth",
       });
@@ -565,6 +571,8 @@ export default function StudentDashboard() {
     }
 
     if (destination === "payments") {
+      setActiveSection("payments");
+
       document.getElementById("payments")?.scrollIntoView({
         behavior: "smooth",
       });
@@ -573,6 +581,8 @@ export default function StudentDashboard() {
     }
 
     if (destination === "top") {
+      setActiveSection("overview");
+
       window.scrollTo({
         top: 0,
         behavior: "smooth",
@@ -610,6 +620,13 @@ export default function StudentDashboard() {
 
   const initials = getInitials(user.name);
   const isPro = user.plan?.toLowerCase() === "pro";
+
+  const activeSectionLabel =
+    activeSection === "applications"
+      ? "My Applications"
+      : activeSection === "payments"
+        ? "Payment History"
+        : "Overview";
 
   return (
     <div className="min-h-screen bg-[#F7F8F5] text-[#17251D]">
@@ -723,7 +740,7 @@ export default function StudentDashboard() {
           <SidebarItem
             icon={<LayoutDashboard size={19} />}
             label="Overview"
-            active
+            active={activeSection === "overview"}
             collapsed={sidebarCollapsed}
             onClick={() => navigate("top")}
           />
@@ -738,6 +755,7 @@ export default function StudentDashboard() {
           <SidebarItem
             icon={<ClipboardList size={19} />}
             label="My Applications"
+            active={activeSection === "applications"}
             collapsed={sidebarCollapsed}
             onClick={() => navigate("applications")}
           />
@@ -746,11 +764,13 @@ export default function StudentDashboard() {
             icon={<Wallet size={19} />}
             label="Upgrade Plan"
             collapsed={sidebarCollapsed}
-            onClick={() => navigate("/#pricing")} />
+            onClick={() => navigate("/#pricing")}
+          />
 
           <SidebarItem
             icon={<Receipt size={19} />}
             label="Payment History"
+            active={activeSection === "payments"}
             collapsed={sidebarCollapsed}
             onClick={() => navigate("payments")}
           />
@@ -849,7 +869,7 @@ export default function StudentDashboard() {
 
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[1.8px] text-[#9AA69E]">
-                Student Portal / Overview
+                Student Portal / {activeSectionLabel}
               </p>
 
               <h1 className="mt-0.5 text-lg font-extrabold tracking-tight text-[#17251D]">
@@ -1342,7 +1362,10 @@ export default function StudentDashboard() {
                     return (
                       <button
                         key={item}
-                        onClick={() => setFilter(item)}
+                        onClick={() => {
+                          setFilter(item);
+                          setPage(1);
+                        }}
                         className={`
                           rounded-lg px-3.5 py-2
                           text-xs font-bold transition

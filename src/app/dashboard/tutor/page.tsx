@@ -169,7 +169,7 @@ export default function TutorDashboard() {
 
           throw new Error(
             result?.message ||
-              "Failed to load tutor dashboard"
+            "Failed to load tutor dashboard"
           );
         }
 
@@ -319,10 +319,9 @@ export default function TutorDashboard() {
           bg-white
           transition-all duration-300
           ${collapsed ? "w-[88px]" : "w-[272px]"}
-          ${
-            mobileMenuOpen
-              ? "translate-x-0"
-              : "-translate-x-full lg:translate-x-0"
+          ${mobileMenuOpen
+            ? "translate-x-0"
+            : "-translate-x-full lg:translate-x-0"
           }
         `}
       >
@@ -434,10 +433,9 @@ export default function TutorDashboard() {
                   rounded-xl px-3 py-3.5
                   text-sm font-semibold
                   transition-all duration-200
-                  ${
-                    active
-                      ? "bg-[#e9f3ec] text-[#075c3b] shadow-sm"
-                      : "text-[#718078] hover:bg-[#f5f8f5] hover:text-[#075c3b]"
+                  ${active
+                    ? "bg-[#e9f3ec] text-[#075c3b] shadow-sm"
+                    : "text-[#718078] hover:bg-[#f5f8f5] hover:text-[#075c3b]"
                   }
                   ${collapsed ? "justify-center" : ""}
                 `}
@@ -492,8 +490,7 @@ export default function TutorDashboard() {
           </button>
 
           <button
-            onClick={() => router.push("/pricing")}
-            title={collapsed ? "Upgrade Plan" : ""}
+            onClick={() => router.push("/?role=tutor#pricing")} title={collapsed ? "Upgrade Plan" : ""}
             className={`
               flex w-full items-center gap-3 rounded-xl
               px-3 py-3.5 text-sm font-semibold
@@ -531,7 +528,7 @@ export default function TutorDashboard() {
               </p>
 
               <button
-                onClick={() => router.push("/pricing")}
+                onClick={() => router.push("/?role=tutor#pricing")}
                 className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#075c3b] py-2.5 text-xs font-bold text-white transition hover:bg-[#087448]"
               >
                 Explore Plans
@@ -745,7 +742,7 @@ export default function TutorDashboard() {
                 </div>
 
                 <button
-                  onClick={() => router.push("/pricing")}
+                  onClick={() => router.push("/?role=tutor#pricing")}
                   className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-[#f5ca70] py-3.5 text-sm font-extrabold text-[#443515] transition hover:bg-[#ffda8d]"
                 >
                   {isPro ? "View Membership" : "Explore Pro Plan"}
@@ -1023,7 +1020,7 @@ export default function TutorDashboard() {
                     </p>
 
                     <button
-                      onClick={() => router.push("/pricing")}
+                      onClick={() => router.push("/?role=tutor#pricing")}
                       className="flex items-center gap-2 text-sm font-extrabold text-[#087448] transition hover:text-[#075c3b]"
                     >
                       Upgrade to Pro

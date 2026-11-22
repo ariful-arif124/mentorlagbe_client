@@ -1,266 +1,182 @@
-# MentorLagbe — Smart Tuition & Mentorship Platform
+# MentorLagbe – Online Tutor & Tuition Management Platform
 
 <p align="center">
   <strong>Connecting Students with the Right Tutors</strong>
 </p>
 
-MentorLagbe is a full-stack tuition and mentorship platform designed to connect students with qualified tutors. It provides a convenient environment where students can discover tuition opportunities, apply for suitable tutors, and manage their academic journey, while tutors can publish tuition listings, manage applications, and connect with students.
+<p align="center">
+  A full-stack educational platform designed to connect students seeking academic support with tutors offering personalized teaching services.
+</p>
 
-The platform includes dedicated dashboards for students, tutors, and administrators, secure authentication, tuition management, application processing, and Stripe-powered Pro plan payments.
+## Live Website
 
----
+**Live Project:** https://mentorlagbe-client-five.vercel.app/
 
-## Project Overview
+**Frontend:** Next.js (Vercel)
 
-MentorLagbe simplifies the process of finding and managing private tuition opportunities through a centralized digital platform.
-
-The application provides three primary user roles:
-
-- **Students:** Explore tuition opportunities, apply to listings, and manage applications.
-- **Tutors:** Create and manage tuition listings, receive applications, and manage students.
-- **Administrators:** Manage users, tutors, students, tuition listings, applications, payments, and platform settings.
-
-The frontend is developed using Next.js and TypeScript, while the backend uses Node.js, Express.js, and MongoDB.
+**Backend:** Node.js, Express.js (Render)
 
 ---
 
-## Key Features
+## 1. Project Overview
 
-### 1. Public Website
+MentorLagbe is an online tutor and tuition management platform that connects students with qualified tutors. The platform provides an organized environment where students can discover tuition opportunities, apply for suitable listings, and manage their applications.
 
-- Modern and responsive homepage.
-- Hero section with clear calls to action.
-- Featured tuition opportunities fetched from the backend.
-- Subject-based tuition discovery.
-- How It Works section.
-- Platform statistics and testimonials.
-- Student and tutor pricing plans.
+Tutors can create tuition posts, manage their listings, review student applications, and upgrade their membership plans to access additional features.
+
+The platform also includes an administrative dashboard for managing platform activities.
+
+The main goal of this project is to make finding tutors and managing tuition opportunities easier, more accessible, and more efficient.
+
+## 2. Technologies Used
+
+### Frontend
+- Next.js 14
+- React.js
+- TypeScript
+- Tailwind CSS
+- Framer Motion
+- Lucide React
+- HTML5
+- CSS3
+
+### Backend Integration
+- Node.js
+- Express.js
+- MongoDB
+- RESTful API
+- JWT Authentication
+- Google OAuth 2.0
+
+### Payment Integration
+- Stripe Payment Gateway
+
+### Deployment
+- Vercel – Frontend Hosting
+- Render – Backend Hosting
+- MongoDB Atlas – Database Hosting
+- GitHub – Version Control
+
+## 3. Main Features and Functionalities
+
+### A. Public Website
+
+- Professional and responsive landing page.
+- Attractive hero section with clear call-to-action buttons.
+- Browse available tuition listings.
+- Explore popular subjects.
+- Featured tuition opportunities.
+- How It Works section explaining the platform.
+- Statistics and testimonials sections.
+- Membership pricing section.
 - Responsive navigation bar and footer.
-- Dedicated tuition browsing and details pages.
 
-### 2. Authentication and Authorization
+### B. User Authentication
 
-- Email and password registration.
-- Secure login and logout.
-- Google OAuth authentication.
-- JWT-based authentication.
-- Role-based access control.
-- Protected student, tutor, and admin dashboards.
-- Dynamic navigation based on authentication status.
+- Student and tutor registration.
+- Email and password authentication.
+- Google Sign-In integration.
+- Role-based account registration.
+- Password validation.
+- Login and logout functionality.
+- Protected dashboard access.
+- Role-based navigation and redirection.
+- Dynamic user profile information.
 
-### 3. Student Dashboard
+### C. Student Dashboard
 
 Students can:
 
-- View their dashboard overview.
+- View their dashboard and account information.
 - Browse available tuition opportunities.
-- Search and filter tuition listings.
-- View detailed tuition information.
-- Apply for tuition opportunities.
+- Explore tuition details.
+- Apply for suitable tuition listings.
 - Track submitted applications.
-- View application statuses.
-- Cancel pending applications.
-- Manage their profile.
-- Upload a profile image.
-- Upgrade to the Student Pro plan.
+- Monitor application status.
+- Update their profile.
+- View membership information.
+- Upgrade to the Pro membership plan.
 
-### 4. Tutor Dashboard
+### D. Tutor Dashboard
 
 Tutors can:
 
-- View dashboard statistics.
-- Create tuition listings.
-- Manage existing tuition posts.
-- Edit tuition information.
-- Delete tuition listings.
-- Monitor application requests.
-- View student application details.
+- Access a personalized tutor dashboard.
+- View tuition statistics.
+- Create and publish tuition posts.
+- Manage their existing tuition listings.
+- Edit and manage posted tuitions.
+- Review student applications.
+- View applicant information.
 - Accept or reject applications.
 - Manage their profile.
+- View payment history.
+- Monitor membership status.
 - Upgrade to the Tutor Pro plan.
 
-### 5. Admin Dashboard
+### E. Admin Dashboard
 
-The administration panel provides centralized platform management.
+The platform includes a separate administrative workspace for authorized administrators.
 
-**Overview**
-- Platform statistics.
-- User and tutor statistics.
-- Student statistics.
-- Tuition and application statistics.
-- Payment overview.
+Administrative functionality includes platform overview and management features, with access controlled through user roles.
 
-**User Management**
-- View registered users.
-- Search and filter users.
-- Manage user accounts.
-- Activate and deactivate accounts.
-- View user information.
+### F. Membership and Pricing System
 
-**Tutor Management**
-- View tutor accounts.
-- Monitor tutor activity.
-- Manage tutor accounts.
+MentorLagbe provides separate membership plans for students and tutors.
 
-**Student Management**
-- View student accounts.
-- Monitor student activity.
-- Manage student accounts.
+**Student Membership**
 
-**Tuition Management**
-- View tuition listings.
-- Review submitted tuition posts.
-- Approve or reject tuition listings.
-- Manage existing listings.
+| Feature | Free | Pro |
+|---|---|---|
+| Browse tuition listings | Yes | Yes |
+| Apply for tuition | Yes | Yes |
+| Track applications | Yes | Yes |
+| Priority booking | No | Yes |
+| Price | $0 | $10 |
 
-**Application Management**
-- View tuition applications.
-- Monitor application statuses.
-- Manage application records.
+**Tutor Membership**
 
-**Payment Management**
-- View payment history.
-- Monitor successful and unsuccessful transactions.
-- Search and filter payments.
-- View payment statistics.
-- Monitor transaction information.
+| Feature | Free | Pro |
+|---|---|---|
+| Create tuition posts | Up to 2 | Unlimited |
+| Manage applications | Yes | Yes |
+| Manage listings | Yes | Yes |
+| Verified tutor badge | No | Yes |
+| Price | $0 | $15 |
 
-**Platform Settings**
-- Manage administrator settings.
-- Configure available platform preferences.
+### G. Payment Integration
 
-### 6. Tuition Management System
+- Stripe payment gateway integration.
+- Student Pro membership payment.
+- Tutor Pro membership payment.
+- Payment processing through the backend.
+- Payment records and transaction history.
+- Membership status management.
 
-- Dynamic tuition listings from MongoDB.
-- Featured tuition section displays the six latest approved and active listings.
-- Tuition details pages.
-- Subject-based filtering.
-- Class-level filtering.
-- Online and offline tuition modes.
-- Location-based filtering.
-- Search functionality.
-- Approval-based listing visibility.
+## 4. User Roles
 
-### 7. Payment Integration
+The platform supports three primary user roles:
 
-MentorLagbe integrates Stripe Checkout for Pro plan purchases.
+1. **Student:** Searches for tutors, browses tuition listings, applies for opportunities, and manages applications.
+2. **Tutor:** Creates tuition posts, manages listings, reviews applicants, and manages membership.
+3. **Admin:** Accesses administrative functionality and oversees platform activities.
 
-**Available plans**
+Each role has its own dashboard and access permissions.
 
-| Plan | Price | Payment Type |
-|---|---:|---|
-| Student Pro | $10 | One-time payment |
-| Tutor Pro | $15 | One-time payment |
+## 5. Responsive Design
 
-Payment functionality includes:
+The frontend was developed with responsive design principles to support different screen sizes.
 
-- Stripe Checkout integration.
-- Secure backend payment session creation.
-- Stripe webhook verification.
-- Payment status verification.
-- Automatic Pro plan activation after successful payment.
-- Payment history storage in MongoDB.
-- Payment success and cancellation pages.
-- Admin payment monitoring.
+- Desktop computers
+- Laptops
+- Tablets
+- Mobile devices
 
-Payments are processed as one-time purchases. Automatic recurring billing is not enabled.
+The interface uses a consistent green-based visual identity, clean layouts, reusable components, responsive navigation, and interactive animations.
 
-### 8. Image Upload
+## 6. Project Structure
 
-- Profile image uploading.
-- ImgBB image hosting integration.
-- Dynamic profile image display.
-
-### 9. User Interface and Experience
-
-- Responsive desktop, tablet, and mobile layouts.
-- Modern card-based design.
-- Consistent color system.
-- Smooth animations using Framer Motion.
-- Lucide icons.
-- Loading skeletons.
-- Empty states.
-- Toast notifications.
-- Reusable UI components.
-
----
-
-## Technology Stack
-
-### Frontend
-
-| Technology | Purpose |
-|---|---|
-| Next.js 14 | React framework |
-| React | User interface |
-| TypeScript | Type safety |
-| Tailwind CSS | Styling |
-| shadcn/ui | UI components |
-| Framer Motion | Animations |
-| Lucide React | Icons |
-| React Hooks | State and lifecycle management |
-
-### Backend
-
-| Technology | Purpose |
-|---|---|
-| Node.js | Runtime environment |
-| Express.js | REST API |
-| MongoDB | Database |
-| JWT | Authentication |
-| bcrypt | Password hashing |
-| Google OAuth | Google authentication |
-| Stripe | Payment processing |
-| Multer | File upload handling |
-
-### External Services
-
-- MongoDB Atlas — Cloud database hosting.
-- Stripe — Payment processing.
-- Google OAuth — Google authentication.
-- ImgBB — Image hosting.
-- Vercel — Frontend deployment (planned).
-- Render — Backend deployment (planned).
-
----
-
-## Project Architecture
-
-MentorLagbe follows a client-server architecture.
-
-```text
-MentorLagbe
-│
-├── Client
-│   ├── Next.js
-│   ├── React
-│   ├── TypeScript
-│   ├── Tailwind CSS
-│   └── Framer Motion
-│
-├── Server
-│   ├── Node.js
-│   ├── Express.js
-│   ├── REST API
-│   ├── Authentication
-│   └── Business Logic
-│
-├── Database
-│   └── MongoDB Atlas
-│       ├── Users
-│       ├── Tuitions
-│       ├── Applications
-│       └── Payments
-│
-└── External Services
-    ├── Stripe
-    ├── Google OAuth
-    └── ImgBB
-```
-
----
-
-## Frontend Project Structure
+The frontend follows the Next.js App Router architecture.
 
 ```text
 client/
@@ -272,213 +188,129 @@ client/
 │   │   ├── dashboard/
 │   │   │   ├── admin/
 │   │   │   ├── student/
-│   │   │   └── tutor/
+│   │   │   ├── tutor/
+│   │   │   └── profile/
 │   │   │
-│   │   ├── payment/
-│   │   ├── services/
 │   │   ├── sign-in/
 │   │   ├── sign-up/
 │   │   ├── tuitions/
+│   │   ├── pricing/
 │   │   ├── layout.tsx
 │   │   └── page.tsx
 │   │
 │   ├── components/
-│   │   ├── auth/
-│   │   ├── home/
-│   │   ├── layout/
-│   │   └── ui/
-│   │
 │   ├── services/
-│   ├── types/
 │   └── ...
 │
 ├── .env.local
 ├── package.json
-├── next.config.ts
-├── tailwind.config.ts
+├── tsconfig.json
 └── README.md
 ```
 
----
-
-## Installation and Setup
+## 7. Installation and Setup
 
 ### Prerequisites
-
-Make sure you have installed:
 
 - Node.js
 - npm
 - Git
-- MongoDB Atlas account
+- A running MentorLagbe backend server
 
-### 1. Clone the Repository
-
-```bash
-git clone YOUR_FRONTEND_GITHUB_REPOSITORY_URL
-```
-
-### 2. Navigate to the Project
+### Step 1: Clone the Repository
 
 ```bash
-cd mentorlagbe_client
+git clone YOUR_CLIENT_REPOSITORY_URL
 ```
 
-### 3. Install Dependencies
+### Step 2: Navigate to the Project
+
+```bash
+cd client
+```
+
+### Step 3: Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 4. Configure Environment Variables
+### Step 4: Configure Environment Variables
 
 Create a `.env.local` file in the project root.
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:5000
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ```
 
-For production, replace the local backend URL with your deployed backend API URL.
+For the deployed frontend, configure the production backend URL in Vercel:
 
-### 5. Start the Development Server
+```env
+NEXT_PUBLIC_API_URL=https://mentorlagbe-server-2oyc.onrender.com/api
+```
+
+### Step 5: Start the Development Server
 
 ```bash
 npm run dev
 ```
 
-Open your browser and visit:
+Open the following address:
 
-```text
 http://localhost:3000
+
+### Step 6: Build for Production
+
+```bash
+npm run build
 ```
 
----
+## 8. Deployment
 
-## Backend Integration
+The frontend application is deployed on Vercel.
 
-The frontend communicates with the separate MentorLagbe backend through REST API endpoints.
+**Live URL:**
 
-The API base URL is configured using:
+https://mentorlagbe-client-five.vercel.app/
 
-```env
-NEXT_PUBLIC_API_URL=http://localhost:5000
-```
+The backend is hosted separately on Render, and the frontend communicates with it through REST API endpoints.
 
-The frontend communicates with backend services for:
+MongoDB Atlas is used for persistent data storage.
 
-- Authentication and user management.
-- Google authentication.
-- Tuition listing and details.
-- Tuition applications.
-- Tutor management.
-- Student profiles.
-- Image uploading.
-- Stripe checkout.
-- Payment verification.
-- Admin dashboard operations.
+## 9. Key Learning Outcomes
 
-The backend repository must be running for the complete application to function locally.
+Through developing MentorLagbe, the project demonstrates practical experience in:
 
----
+- Developing full-stack web applications.
+- Building responsive interfaces using Next.js and Tailwind CSS.
+- Implementing role-based authentication and authorization.
+- Integrating Google OAuth.
+- Connecting frontend applications with REST APIs.
+- Managing application state and user sessions.
+- Developing student, tutor, and administrative dashboards.
+- Integrating Stripe payment functionality.
+- Working with MongoDB-based applications.
+- Deploying applications using Vercel and Render.
+- Managing source code using Git and GitHub.
 
-## Available Frontend Routes
+## 10. Conclusion
 
-| Route | Description |
-|---|---|
-| `/` | Homepage |
-| `/sign-in` | User login |
-| `/sign-up` | User registration |
-| `/tuitions` | Browse tuition listings |
-| `/tuitions/[id]` | Tuition details |
-| `/dashboard/student` | Student dashboard |
-| `/dashboard/tutor` | Tutor dashboard |
-| `/dashboard/admin` | Admin dashboard |
-| `/dashboard/admin/users` | User management |
-| `/dashboard/admin/tutors` | Tutor management |
-| `/dashboard/admin/students` | Student management |
-| `/dashboard/admin/tuitions` | Tuition management |
-| `/dashboard/admin/applications` | Application management |
-| `/dashboard/admin/payments` | Payment management |
-| `/dashboard/admin/settings` | Admin settings |
-| `/payment/success` | Payment success |
-| `/payment/cancel` | Payment cancellation |
+MentorLagbe is a full-stack educational platform designed to simplify the connection between students and tutors.
+
+The project brings together tuition discovery, application management, tutor services, user authentication, membership subscriptions, and administrative functionality in one platform.
+
+The development of this project provided practical experience in modern frontend development, backend integration, authentication, payment processing, responsive UI design, and production deployment.
 
 ---
 
-## Backend Repository
+**Project Name:** MentorLagbe
 
-MentorLagbe uses a separate backend repository.
+**Project Type:** Full-Stack Web Application
 
-**Backend Repository:** Add your server GitHub repository URL here.
+**Frontend Framework:** Next.js 14
 
-The backend is responsible for:
+**Programming Language:** TypeScript
 
-- API development.
-- Authentication and authorization.
-- Database operations.
-- Tuition management.
-- Application processing.
-- Payment processing.
-- Webhook verification.
-- Administrative operations.
+**Live Website:** https://mentorlagbe-client-five.vercel.app/
 
----
-
-## Deployment
-
-The planned production deployment architecture is:
-
-| Component | Platform |
-|---|---|
-| Frontend | Vercel |
-| Backend | Render |
-| Database | MongoDB Atlas |
-| Payment Gateway | Stripe |
-| Image Hosting | ImgBB |
-
-**Live Website:** To be added after deployment.
-
-**Backend API:** To be added after deployment.
-
----
-
-## Security Considerations
-
-- Passwords are hashed before database storage.
-- JWT authentication protects private routes.
-- Role-based authorization restricts access.
-- Payment verification is handled by the backend.
-- Stripe webhook signatures are verified.
-- Sensitive credentials are stored in environment variables.
-- Frontend environment variables do not contain private payment secrets.
-
----
-
-## Future Improvements
-
-Potential future enhancements include:
-
-- Student tuition bookmarking.
-- Advanced recommendation features.
-- Tutor ratings and reviews.
-- Enhanced notification system.
-- More advanced search and filtering.
-- Additional administrative analytics.
-
----
-
-## Project Status
-
-MentorLagbe has implemented its main frontend and backend modules, including authentication, dashboards, tuition management, applications, and one-time Stripe payments.
-
-Production deployment and final assignment compliance checks are ongoing.
-
----
-
-## License
-
-This project was developed as an academic project. All rights are reserved by the project contributors unless otherwise specified.
-
----
-
-**MentorLagbe — Connecting Students with the Right Tutors.**
+**Status:** Deployed

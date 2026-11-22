@@ -158,7 +158,11 @@ export default function TutorDashboard() {
           }
         );
 
-        const result = await response.json();
+        const contentType = response.headers.get("content-type") || "";
+
+        const result = contentType.includes("application/json")
+          ? await response.json()
+          : { message: await response.text() };
 
         if (!response.ok) {
           if (response.status === 401) {
